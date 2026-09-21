@@ -1,0 +1,34 @@
+/**
+ * Site-wide configuration. Change brand copy, navigation and contact details here.
+ * Anything sensitive or client-specific is read from environment variables (see .env.example).
+ */
+
+const env = import.meta.env;
+
+export const site = {
+  name: "Ashake Alase",
+  tagline: "Good food, made for every occasion",
+  logo: "/logo.png",
+  contact: {
+    phone: (env.VITE_CONTACT_PHONE as string) || "",
+    email: (env.VITE_CONTACT_EMAIL as string) || "",
+    instagram: (env.VITE_CONTACT_INSTAGRAM as string) || "",
+  },
+  /** Shown on the payment page. Real values come from env, never from source. */
+  bank: {
+    name: (env.VITE_BANK_NAME as string) || "Bank name",
+    accountName: (env.VITE_BANK_ACCOUNT_NAME as string) || "Account name",
+    accountNumber: (env.VITE_BANK_ACCOUNT_NUMBER as string) || "0000000000",
+  },
+} as const;
+
+export const navLinks = [
+  { label: "Home", to: "/" },
+  { label: "Menu / Offers", to: "/menu" },
+  { label: "Track Order", to: "/track" },
+  { label: "Contact", to: "/contact" },
+] as const;
+
+/** Receipt upload limits */
+export const RECEIPT_MAX_BYTES = 5 * 1024 * 1024;
+export const RECEIPT_ACCEPT = "image/png,image/jpeg,image/webp,application/pdf";

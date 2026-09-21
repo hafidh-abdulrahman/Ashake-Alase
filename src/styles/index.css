@@ -1,0 +1,151 @@
+@import "tailwindcss";
+
+/*
+ * Ashake Alase brand system: pepper, palm sugar, cream and charcoal.
+ */
+@theme {
+  --font-display:
+    "Bricolage Grotesque Variable", "Arial Narrow", system-ui, sans-serif;
+  --font-sans:
+    "DM Sans Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: Georgia, "Times New Roman", serif;
+
+  --color-surface: #ffffff;
+  --color-surface-alt: #ead7b9;
+  --color-paper: #fffaf1;
+  --color-ink: #241916;
+  --color-ink-soft: #705b51;
+  --color-primary: #c9532c;
+  --color-primary-dark: #a23b21;
+  --color-accent: #e6b34f;
+  --color-line: #dcc8b1;
+
+  --color-ok: #1f6b3a;
+  --color-ok-bg: #dcf2e3;
+  --color-warn: #7a4e00;
+  --color-warn-bg: #ffe8a8;
+  --color-info: #1e4a86;
+  --color-info-bg: #dbe8fb;
+  --color-flame: #a83f1e;
+  --color-flame-bg: #f7d5c4;
+  --color-violet: #40358f;
+  --color-violet-bg: #e6e2fb;
+  --color-bad: #9b1520;
+  --color-bad-bg: #fde0e0;
+
+  --shadow-lift:
+    0 1px 0 rgb(36 25 22 / 0.04), 0 20px 40px -16px rgb(36 25 22 / 0.32);
+  --animate-rise: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-pop: pop 0.5s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes pop {
+    from {
+      opacity: 0;
+      transform: scale(0.85) rotate(-4deg);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--color-surface);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 1.02;
+  }
+  .font-serif {
+    font-family: var(--font-serif);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+  ::selection {
+    background: var(--color-primary);
+    color: white;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Tall arch frame: the brand shape, echoing the serving dome in the logo */
+  .arch {
+    border-top-left-radius: 999px;
+    border-top-right-radius: 999px;
+    border-bottom-left-radius: 1.25rem;
+    border-bottom-right-radius: 1.25rem;
+  }
+  .container-page {
+    width: 100%;
+    max-width: 76rem;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+  @media (min-width: 768px) {
+    .container-page {
+      padding-inline: 2rem;
+    }
+  }
+  .section-y {
+    padding-block: 4.5rem;
+  }
+  .eyebrow {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .grain {
+    background-image: radial-gradient(
+      rgb(36 25 22 / 0.09) 0.7px,
+      transparent 0.7px
+    );
+    background-size: 8px 8px;
+  }
+  @media (min-width: 1024px) {
+    .section-y {
+      padding-block: 7rem;
+    }
+  }
+}
