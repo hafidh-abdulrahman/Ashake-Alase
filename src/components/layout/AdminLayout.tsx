@@ -10,7 +10,7 @@ export function AdminLayout() {
       <div className="min-h-dvh bg-surface">
         <ScrollManager />
         <header className="border-b border-line bg-paper">
-          <div className="container-page flex h-16 items-center justify-between">
+          <div className="container-page flex flex-col gap-3 py-3 sm:h-16 sm:flex-row sm:items-center sm:justify-between sm:py-0">
             <Link to="/admin" className="flex items-center gap-3">
               <img
                 src={site.logo}
@@ -23,7 +23,10 @@ export function AdminLayout() {
                 Orders admin
               </span>
             </Link>
-            <div className="flex items-center gap-4">
+            <nav
+              aria-label="Admin navigation"
+              className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line pt-3 text-sm sm:border-0 sm:pt-0"
+            >
               <Link
                 to="/admin/menu"
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-soft hover:text-ink"
@@ -32,7 +35,7 @@ export function AdminLayout() {
               </Link>
               <Link
                 to="/admin/delivery"
-                className="hidden items-center gap-1.5 text-sm font-semibold text-ink-soft hover:text-ink sm:inline-flex"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-soft hover:text-ink"
               >
                 <MapPin className="size-4" aria-hidden /> Delivery
               </Link>
@@ -42,7 +45,7 @@ export function AdminLayout() {
               >
                 View website <ExternalLink className="size-4" aria-hidden />
               </Link>
-            </div>
+            </nav>
           </div>
         </header>
         <main className="container-page py-8 lg:py-12">
