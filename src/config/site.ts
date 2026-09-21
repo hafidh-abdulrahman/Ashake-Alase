@@ -12,7 +12,12 @@ export const site = {
   contact: {
     phone: (env.VITE_CONTACT_PHONE as string) || "",
     email: (env.VITE_CONTACT_EMAIL as string) || "",
-    instagram: (env.VITE_CONTACT_INSTAGRAM as string) || "",
+    instagram:
+      (env.VITE_CONTACT_INSTAGRAM as string) ||
+      "https://www.instagram.com/ashake_alase/",
+    tiktok:
+      (env.VITE_CONTACT_TIKTOK as string) ||
+      "https://www.tiktok.com/@ashake.alase?_r=1&_t=ZS-99uuWweZY1Q",
   },
   /** Shown on the payment page. Real values come from env, never from source. */
   bank: {

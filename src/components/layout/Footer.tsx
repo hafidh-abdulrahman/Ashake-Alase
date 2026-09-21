@@ -2,9 +2,55 @@ import { Link } from "react-router-dom";
 import { AtSign, Mail, Phone } from "lucide-react";
 import { navLinks, site } from "@/config/site";
 
+function InstagramIcon({ className = "size-4" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      className={className}
+    >
+      <rect
+        x="3.5"
+        y="3.5"
+        width="17"
+        height="17"
+        rx="5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="17.2" cy="6.8" r="1.2" fill="currentColor" />
+    </svg>
+  );
+}
+
+function TikTokIcon({ className = "size-4" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        d="M14.5 3.5c.7 1.7 2 2.9 4.2 3.3v2.8a7.6 7.6 0 0 1-4.1-1.2v7.1a5.5 5.5 0 1 1-5.5-5.5c.4 0 .9.1 1.3.2v2.8a2.7 2.7 0 1 0 1.8 2.5V3.5h2.3Z"
+        fill="currentColor"
+      />
+      <path
+        d="M14.5 3.5c.4 1.2 1.3 2.2 2.8 2.8v2.4c-1.1-.2-2-.8-2.8-1.7V3.5Z"
+        fill="currentColor"
+        opacity="0.8"
+      />
+    </svg>
+  );
+}
+
 export function Footer() {
-  const { phone, email, instagram } = site.contact;
-  const hasContact = phone || email || instagram;
+  const { phone, email, instagram, tiktok } = site.contact;
+  const hasContact = phone || email || instagram || tiktok;
   return (
     <footer className="bg-ink text-surface">
       <div className="container-page grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr] md:py-16">
@@ -81,8 +127,26 @@ export function Footer() {
               {instagram && (
                 <li className="flex items-center gap-2.5">
                   <AtSign className="size-4" aria-hidden />{" "}
-                  <a href={instagram} className="hover:underline">
+                  <a
+                    href={instagram}
+                    className="hover:underline"
+                    target="_blank"
+                    rel="noreferrer noopener"
+                  >
                     Instagram
+                  </a>
+                </li>
+              )}
+              {tiktok && (
+                <li className="flex items-center gap-2.5">
+                  <TikTokIcon className="size-4" />{" "}
+                  <a
+                    href={tiktok}
+                    className="hover:underline"
+                    target="_blank"
+                    rel="noreferrer noopener"
+                  >
+                    TikTok
                   </a>
                 </li>
               )}
@@ -91,6 +155,33 @@ export function Footer() {
             <p className="mt-4 text-surface/75">
               Contact details will appear here soon.
             </p>
+          )}
+
+          {(instagram || tiktok) && (
+            <div className="mt-5 flex items-center gap-3">
+              {instagram && (
+                <a
+                  href={instagram}
+                  aria-label="Instagram"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="inline-flex size-10 items-center justify-center rounded-full border border-surface/15 bg-surface/5 text-surface transition hover:border-surface/40 hover:bg-surface/10 hover:text-white"
+                >
+                  <InstagramIcon className="size-4" />
+                </a>
+              )}
+              {tiktok && (
+                <a
+                  href={tiktok}
+                  aria-label="TikTok"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="inline-flex size-10 items-center justify-center rounded-full border border-surface/15 bg-surface/5 text-surface transition hover:border-surface/40 hover:bg-surface/10 hover:text-white"
+                >
+                  <TikTokIcon className="size-4" />
+                </a>
+              )}
+            </div>
           )}
         </div>
       </div>
