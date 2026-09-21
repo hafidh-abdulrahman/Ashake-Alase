@@ -3,171 +3,257 @@ import type {
   Order,
   OrderItem,
   OrderStatus,
-  PaymentReceipt,
+  PaymentStatus,
 } from "@/types";
-import { mockOrders } from "@/data/mock/orders";
-import { generateOrderNumber } from "@/lib/orderMeta";
-import { readJson, removeKey, writeJson } from "@/lib/storage";
-import { simulateLatency } from "./delay";
+import { supabase } from "@/lib/supabase";
 
-/**
- * Order data access.
- * Phase 1: orders live in this browser's localStorage, seeded with sample orders, so the whole
- * customer-to-admin flow can be demonstrated on one device.
- * Phase 2: replace each function with Supabase calls (orders + order_items + payments).
- * Admin functions (list, update, verify) will then be protected by Supabase Auth and row level security.
- */
+interface OrderRow {
+  id: string;
+  order_number: string;
+  customer_name: string;
+  customer_phone: string;
+  customer_email: string | null;
+  delivery_address: string;
+  delivery_fee: number | string;
+  subtotal: number | string;
+  total_amount: number | string;
+  status: string;
+  payment_status: string;
+  created_at: string;
+  updated_at: string;
+}
 
-const KEY = "aa:orders:v1";
+interface OrderItemRow {
+  id: string;
+  order_id: string;
+  product_id: string;
+  product_name: string;
+  quantity: number;
+  unit_price: number | string;
+  total_price: number | string;
+  created_at: string;
+}
 
-const load = (): Order[] => {
-  const stored = readJson<Order[] | null>(KEY, null);
-  if (stored) return stored;
-  writeJson(KEY, mockOrders);
-  return mockOrders;
+const client = () => {
+  if (!supabase) throw new Error("Supabase is not configured.");
+  return supabase;
 };
-const save = (orders: Order[]) => writeJson(KEY, orders);
+
+const toNumber = (value: number | string) => Number(value);
+
+const encodeDelivery = (draft: CheckoutDraft, areaName: string) =>
+  JSON.stringify({
+    areaName,
+    address: draft.address.trim(),
+    preferredDate: draft.preferredDate,
+    notes: draft.notes.trim(),
+  });
+
+const decodeDelivery = (value: string): Order["delivery"] => {
+  try {
+    const parsed = JSON.parse(value) as Partial<Order["delivery"]>;
+    if (parsed.address) {
+      return {
+        areaId: "",
+        areaName: parsed.areaName || "",
+        address: parsed.address,
+        preferredDate: parsed.preferredDate || "",
+        notes: parsed.notes || "",
+      };
+    }
+  } catch {
+    // Older or manually entered rows contain a plain address.
+  }
+  return {
+    areaId: "",
+    areaName: "",
+    address: value,
+    preferredDate: "",
+    notes: "",
+  };
+};
+
+const toOrder = (row: OrderRow, itemRows: OrderItemRow[]): Order => ({
+  id: row.id,
+  orderNumber: row.order_number,
+  customer: {
+    fullName: row.customer_name,
+    phone: row.customer_phone,
+    email: row.customer_email || undefined,
+  },
+  delivery: decodeDelivery(row.delivery_address),
+  items: itemRows.map((item) => ({
+    productId: item.product_id,
+    name: item.product_name,
+    quantity: item.quantity,
+    unitPrice: toNumber(item.unit_price),
+  })),
+  subtotal: toNumber(row.subtotal),
+  deliveryFee: toNumber(row.delivery_fee),
+  total: toNumber(row.total_amount),
+  status: row.status as OrderStatus,
+  payment: {
+    method: "bank_transfer",
+    status: row.payment_status as PaymentStatus,
+    amount: toNumber(row.total_amount),
+  },
+  createdAt: row.created_at,
+});
+
+const getItems = async (orderId: string) => {
+  const { data, error } = await client()
+    .from("order_items")
+    .select("*")
+    .eq("order_id", orderId)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return (data || []) as OrderItemRow[];
+};
+
+const getOrderRow = async (column: "id" | "order_number", value: string) => {
+  const { data, error } = await client()
+    .from("orders")
+    .select("*")
+    .eq(column, value)
+    .maybeSingle();
+  if (error) throw error;
+  return data as OrderRow | null;
+};
+
+const createUniqueOrderNumber = async () => {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const orderNumber = `ASH-${Math.floor(1000 + Math.random() * 9000)}`;
+    const { data, error } = await client()
+      .from("orders")
+      .select("id")
+      .eq("order_number", orderNumber)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return orderNumber;
+  }
+  throw new Error("Unable to create a unique order number.");
+};
 
 export interface CreateOrderInput {
   draft: CheckoutDraft;
   areaName: string;
   items: OrderItem[];
-  subtotal: number;
   deliveryFee: number;
-  receipt: PaymentReceipt;
+}
+
+export async function createOrderItems(
+  orderId: string,
+  items: OrderItem[],
+): Promise<void> {
+  const itemPayload = items.map((item) => ({
+    order_id: orderId,
+    product_id: item.productId,
+    product_name: item.name,
+    quantity: item.quantity,
+    unit_price: item.unitPrice,
+    total_price: item.unitPrice * item.quantity,
+  }));
+  const { error } = await client().from("order_items").insert(itemPayload);
+  if (error) throw error;
 }
 
 export async function createOrder(input: CreateOrderInput): Promise<Order> {
-  await simulateLatency(600);
-  const total = input.subtotal + input.deliveryFee;
-  const order: Order = {
-    id: crypto.randomUUID(),
-    orderNumber: generateOrderNumber(),
-    customer: {
-      fullName: input.draft.fullName.trim(),
-      phone: input.draft.phone.trim(),
-    },
-    delivery: {
-      areaId: input.draft.areaId,
-      areaName: input.areaName,
-      address: input.draft.address.trim(),
-      preferredDate: input.draft.preferredDate,
-      notes: input.draft.notes.trim(),
-    },
-    items: input.items,
-    subtotal: input.subtotal,
-    deliveryFee: input.deliveryFee,
-    total,
-    status: "awaiting_verification",
-    payment: {
-      method: "bank_transfer",
-      status: "awaiting_verification",
-      amount: total,
-      receipt: input.receipt,
-    },
-    createdAt: new Date().toISOString(),
-  };
-  save([order, ...load()]);
-  return order;
+  if (input.items.length === 0) throw new Error("Your cart is empty.");
+  const subtotal = input.items.reduce(
+    (sum, item) => sum + item.unitPrice * item.quantity,
+    0,
+  );
+  const total = subtotal + input.deliveryFee;
+  const orderNumber = await createUniqueOrderNumber();
+  const { data: created, error: orderError } = await client()
+    .from("orders")
+    .insert({
+      order_number: orderNumber,
+      customer_name: input.draft.fullName.trim(),
+      customer_phone: input.draft.phone.trim(),
+      customer_email: input.draft.email.trim() || null,
+      delivery_address: encodeDelivery(input.draft, input.areaName),
+      delivery_fee: input.deliveryFee,
+      subtotal,
+      total_amount: total,
+      status: "new",
+      payment_status: "pending",
+    })
+    .select("*")
+    .single();
+  if (orderError) throw orderError;
+
+  try {
+    await createOrderItems(created.id, input.items);
+  } catch {
+    await client().from("orders").delete().eq("id", created.id);
+    throw new Error("We could not save the order items. Please try again.");
+  }
+
+  return toOrder(
+    created as OrderRow,
+    input.items.map((item, index) => ({
+      id: `new-${index}`,
+      order_id: created.id,
+      product_id: item.productId,
+      product_name: item.name,
+      quantity: item.quantity,
+      unit_price: item.unitPrice,
+      total_price: item.unitPrice * item.quantity,
+      created_at: new Date().toISOString(),
+    })),
+  );
 }
 
 export async function listOrders(): Promise<Order[]> {
-  await simulateLatency(200);
-  return [...load()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const { data, error } = await client()
+    .from("orders")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return Promise.all(
+    ((data || []) as OrderRow[]).map(async (row) =>
+      toOrder(row, await getItems(row.id)),
+    ),
+  );
 }
 
 export async function getOrder(id: string): Promise<Order | null> {
-  await simulateLatency(150);
-  return load().find((o) => o.id === id) ?? null;
+  const row = await getOrderRow("id", id);
+  return row ? toOrder(row, await getItems(row.id)) : null;
 }
 
 export async function getOrderByNumber(
   orderNumber: string,
 ): Promise<Order | null> {
-  await simulateLatency(150);
-  return load().find((o) => o.orderNumber === orderNumber) ?? null;
+  const row = await getOrderRow(
+    "order_number",
+    orderNumber.trim().toUpperCase(),
+  );
+  return row ? toOrder(row, await getItems(row.id)) : null;
 }
 
 export async function getOrderForCustomer(
   orderNumber: string,
   phone: string,
 ): Promise<Order | null> {
-  await simulateLatency(150);
-  const normalizedPhone = phone.replace(/\D/g, "");
-  return (
-    load().find(
-      (o) =>
-        o.orderNumber.toLowerCase() === orderNumber.trim().toLowerCase() &&
-        o.customer.phone.replace(/\D/g, "") === normalizedPhone,
-    ) ?? null
-  );
+  const order = await getOrderByNumber(orderNumber);
+  if (!order) return null;
+  return order.customer.phone.replace(/\D/g, "") === phone.replace(/\D/g, "")
+    ? order
+    : null;
 }
-
-const patch = (id: string, fn: (o: Order) => Order): Order | null => {
-  const orders = load();
-  const idx = orders.findIndex((o) => o.id === id);
-  if (idx === -1) return null;
-  orders[idx] = fn(orders[idx]);
-  save(orders);
-  return orders[idx];
-};
 
 export async function updateOrderStatus(
   id: string,
   status: OrderStatus,
 ): Promise<Order | null> {
-  await simulateLatency(150);
-  return patch(id, (o) => {
-    // Keep payment and order status consistent when an admin moves an order around the flow.
-    if (status === "awaiting_verification") {
-      return {
-        ...o,
-        status,
-        payment: {
-          ...o.payment,
-          status: "awaiting_verification",
-          verifiedAt: undefined,
-        },
-      };
-    }
-    if (o.payment.status !== "verified") {
-      return {
-        ...o,
-        status,
-        payment: {
-          ...o.payment,
-          status: "verified",
-          verifiedAt: new Date().toISOString(),
-        },
-      };
-    }
-    return { ...o, status };
-  });
-}
-
-/** Admin confirms the transfer landed. Marks payment verified and moves the order to Confirmed. */
-export async function verifyPayment(id: string): Promise<Order | null> {
-  await simulateLatency(200);
-  return patch(id, (o) => ({
-    ...o,
-    status: o.status === "awaiting_verification" ? "confirmed" : o.status,
-    payment: {
-      ...o.payment,
-      status: "verified",
-      verifiedAt: new Date().toISOString(),
-    },
-  }));
-}
-
-/** Admin could not match the receipt to a transfer. Order stays in Awaiting Verification. */
-export async function rejectPayment(id: string): Promise<Order | null> {
-  await simulateLatency(200);
-  return patch(id, (o) => ({
-    ...o,
-    payment: { ...o.payment, status: "rejected", verifiedAt: undefined },
-  }));
-}
-
-export async function resetDemoOrders(): Promise<void> {
-  removeKey(KEY);
+  const { data, error } = await client()
+    .from("orders")
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select("*")
+    .maybeSingle();
+  if (error) throw error;
+  return data ? toOrder(data as OrderRow, await getItems(id)) : null;
 }

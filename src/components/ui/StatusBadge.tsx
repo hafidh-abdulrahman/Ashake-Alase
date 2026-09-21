@@ -3,6 +3,7 @@ import { orderStatusLabel, paymentStatusLabel } from "@/lib/orderMeta";
 import { cn } from "@/lib/cn";
 
 const orderStyles: Record<OrderStatus, string> = {
+  new: "bg-info-bg text-info",
   awaiting_verification: "bg-warn-bg text-warn",
   confirmed: "bg-info-bg text-info",
   preparing: "bg-flame-bg text-flame",
@@ -11,6 +12,7 @@ const orderStyles: Record<OrderStatus, string> = {
   delivered: "bg-ok-bg text-ok",
 };
 const paymentStyles: Record<PaymentStatus, string> = {
+  pending: "bg-warn-bg text-warn",
   awaiting_verification: "bg-warn-bg text-warn",
   verified: "bg-ok-bg text-ok",
   rejected: "bg-bad-bg text-bad",

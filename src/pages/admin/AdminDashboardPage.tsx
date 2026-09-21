@@ -9,7 +9,6 @@ import {
 import { Button } from "@/components/ui/Button";
 import { ORDER_FLOW, orderStatusLabel } from "@/lib/orderMeta";
 import { formatDate, formatNaira } from "@/lib/format";
-import { resetDemoOrders } from "@/services/orderService";
 import { cn } from "@/lib/cn";
 import type { Order, OrderStatus } from "@/types";
 
@@ -19,7 +18,7 @@ const itemsSummary = (o: Order) => {
 };
 
 export default function AdminDashboardPage() {
-  const { data: orders, loading, reload } = useOrders();
+  const { data: orders, loading } = useOrders();
   const [filter, setFilter] = useState<OrderStatus | "all">("all");
 
   const counts = useMemo(() => {
@@ -48,12 +47,6 @@ export default function AdminDashboardPage() {
     })),
   ];
 
-  const reset = async () => {
-    await resetDemoOrders();
-    setFilter("all");
-    reload();
-  };
-
   const selectFilter = (nextFilter: OrderStatus | "all") => {
     setFilter(nextFilter);
     document
@@ -69,14 +62,7 @@ export default function AdminDashboardPage() {
           <h1 className="mt-2 text-4xl md:text-5xl">Orders</h1>
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-soft">
-          <span>Demo data, saved in this browser only.</span>
-          <button
-            type="button"
-            onClick={reset}
-            className="font-semibold text-ink underline underline-offset-4 hover:text-primary"
-          >
-            Reset demo data
-          </button>
+          <span>Orders stored in Supabase.</span>
         </div>
       </div>
 
@@ -135,6 +121,7 @@ export default function AdminDashboardPage() {
                   {[
                     "Order",
                     "Customer",
+                    "Phone",
                     "Items",
                     "Amount",
                     "Payment",
@@ -155,6 +142,9 @@ export default function AdminDashboardPage() {
                       {o.orderNumber}
                     </td>
                     <td className="px-4 py-4">{o.customer.fullName}</td>
+                    <td className="whitespace-nowrap px-4 py-4 text-ink-soft">
+                      {o.customer.phone}
+                    </td>
                     <td className="max-w-56 px-4 py-4 text-ink-soft">
                       {itemsSummary(o)}
                     </td>

@@ -1,31 +1,60 @@
 import type { Product, ProductCategory } from "@/types";
-import { mockProducts } from "@/data/mock/products";
-import { simulateLatency } from "./delay";
+import { supabase } from "@/lib/supabase";
 
-const KEY = "aa:products:v1";
+interface ProductRow {
+  id: string;
+  name: string;
+  description: string;
+  price: number | string;
+  image_url: string | null;
+  category: string;
+  stock_quantity: number | null;
+  is_available: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
-const load = (): Product[] => {
-  const stored = localStorage.getItem(KEY);
-  if (stored) {
-    try {
-      return JSON.parse(stored) as Product[];
-    } catch {
-      /* restore demo data below */
-    }
+const PRODUCT_COLUMNS = "*";
+
+const client = () => {
+  if (!supabase) {
+    throw new Error("Supabase is not configured.");
   }
-  localStorage.setItem(KEY, JSON.stringify(mockProducts));
-  return [...mockProducts];
+  return supabase;
 };
 
-const save = (products: Product[]) =>
-  localStorage.setItem(KEY, JSON.stringify(products));
+const placeholderFor = (category: string): Product["placeholder"] => {
+  if (category === "combo") return "plate";
+  if (category === "event") return "tray";
+  if (category === "catering") return "grill";
+  return "box";
+};
 
-/**
- * Product data access.
- * Phase 2: replace the bodies with Supabase queries, e.g.
- *   supabase.from('products').select('*').eq('is_active', true)
- * Keep the function signatures and no component needs to change.
- */
+const toProduct = (row: ProductRow): Product => ({
+  id: row.id,
+  name: row.name,
+  summary: row.description,
+  description: row.description,
+  price: Number(row.price),
+  image: row.image_url ?? "",
+  placeholder: placeholderFor(row.category),
+  includes: [],
+  availableQuantity: row.stock_quantity,
+  maxPerOrder: 1,
+  isActive: row.is_available,
+  featured: false,
+  category: row.category as ProductCategory,
+});
+
+const toRow = (product: Product) => ({
+  name: product.name,
+  description: product.description,
+  price: product.price,
+  image_url: product.image || null,
+  category: product.category,
+  stock_quantity: product.availableQuantity,
+  is_available: product.isActive,
+});
 
 export interface ListProductsOptions {
   category?: ProductCategory;
@@ -35,39 +64,86 @@ export interface ListProductsOptions {
 export async function listProducts(
   options: ListProductsOptions = {},
 ): Promise<Product[]> {
-  await simulateLatency();
-  return load()
-    .filter((p) => options.includeInactive || p.isActive)
-    .filter((p) => !options.category || p.category === options.category)
-    .sort((a, b) => Number(b.featured) - Number(a.featured));
+  let query = client()
+    .from("products")
+    .select(PRODUCT_COLUMNS)
+    .order("created_at", { ascending: false });
+  if (!options.includeInactive) query = query.eq("is_available", true);
+  if (options.category) query = query.eq("category", options.category);
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data as ProductRow[]).map(toProduct);
 }
 
 export async function getProduct(id: string): Promise<Product | null> {
-  await simulateLatency();
-  return load().find((p) => p.id === id && p.isActive) ?? null;
+  const { data, error } = await client()
+    .from("products")
+    .select(PRODUCT_COLUMNS)
+    .eq("id", id)
+    .eq("is_available", true)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? toProduct(data as ProductRow) : null;
 }
 
 export async function getFeaturedProduct(): Promise<Product | null> {
-  await simulateLatency();
-  return load().find((p) => p.featured && p.isActive) ?? null;
+  const { data, error } = await client()
+    .from("products")
+    .select(PRODUCT_COLUMNS)
+    .eq("is_available", true)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? toProduct(data as ProductRow) : null;
 }
 
 export async function listAllProducts(): Promise<Product[]> {
-  await simulateLatency();
-  return load();
+  const { data, error } = await client()
+    .from("products")
+    .select(PRODUCT_COLUMNS)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data as ProductRow[]).map(toProduct);
 }
 
 export async function saveProduct(product: Product): Promise<Product> {
-  await simulateLatency(120);
-  const products = load();
-  const next = products.some((item) => item.id === product.id)
-    ? products.map((item) => (item.id === product.id ? product : item))
-    : [product, ...products];
-  save(next);
-  return product;
+  const table = client().from("products");
+  const query = product.id.startsWith("item-")
+    ? table.insert(toRow(product)).select(PRODUCT_COLUMNS).single()
+    : table
+        .update(toRow(product))
+        .eq("id", product.id)
+        .select(PRODUCT_COLUMNS)
+        .single();
+  const { data, error } = await query;
+  if (error) throw error;
+  return toProduct(data as ProductRow);
 }
 
 export async function removeProduct(id: string): Promise<void> {
-  await simulateLatency(120);
-  save(load().filter((product) => product.id !== id));
+  const { error } = await client().from("products").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function updateProductAvailability(
+  id: string,
+  isAvailable: boolean,
+): Promise<void> {
+  const { error } = await client()
+    .from("products")
+    .update({ is_available: isAvailable })
+    .eq("id", id);
+  if (error) throw error;
+}
+
+export async function updateProductStock(
+  id: string,
+  stockQuantity: number | null,
+): Promise<void> {
+  const { error } = await client()
+    .from("products")
+    .update({ stock_quantity: stockQuantity })
+    .eq("id", id);
+  if (error) throw error;
 }

@@ -1,15 +1,14 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 /**
- * Supabase client (Phase 2).
- * In Phase 1 no keys are set, so `supabase` is null and every service falls back to mock data.
- * Once VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set, services can branch on `isSupabaseConfigured`.
+ * Shared Supabase client for the integration phases.
+ * The app continues using local mock data until services explicitly opt into Supabase.
  */
-const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
+const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
-export const isSupabaseConfigured = Boolean(url && anonKey)
+export const isSupabaseConfigured = Boolean(url && anonKey);
 
 export const supabase: SupabaseClient | null = isSupabaseConfigured
   ? createClient(url as string, anonKey as string)
-  : null
+  : null;

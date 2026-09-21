@@ -47,6 +47,7 @@ export interface DeliveryArea {
 }
 
 export type OrderStatus =
+  | "new"
   | "awaiting_verification"
   | "confirmed"
   | "preparing"
@@ -54,7 +55,11 @@ export type OrderStatus =
   | "out_for_delivery"
   | "delivered";
 
-export type PaymentStatus = "awaiting_verification" | "verified" | "rejected";
+export type PaymentStatus =
+  | "pending"
+  | "awaiting_verification"
+  | "verified"
+  | "rejected";
 
 /** bank_transfer is live in Phase 1. Others are reserved for automated payments later. */
 export type PaymentMethod = "bank_transfer" | "paystack" | "flutterwave";
@@ -88,6 +93,7 @@ export interface OrderItem {
 export interface CustomerDetails {
   fullName: string;
   phone: string;
+  email?: string;
 }
 
 export interface DeliveryDetails {
@@ -117,6 +123,7 @@ export interface Order {
 export interface CheckoutDraft {
   fullName: string;
   phone: string;
+  email: string;
   areaId: string;
   address: string;
   preferredDate: string;
