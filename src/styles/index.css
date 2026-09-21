@@ -37,6 +37,7 @@
     0 1px 0 rgb(36 25 22 / 0.04), 0 20px 40px -16px rgb(36 25 22 / 0.32);
   --animate-rise: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
   --animate-pop: pop 0.5s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+  --animate-float: float 3s ease-in-out infinite;
 
   @keyframes rise {
     from {
@@ -56,6 +57,15 @@
     to {
       opacity: 1;
       transform: none;
+    }
+  }
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-4px);
     }
   }
 }

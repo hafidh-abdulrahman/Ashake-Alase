@@ -1,5 +1,6 @@
 import {
   Home,
+  MessageCircle,
   ShoppingBag,
   UtensilsCrossed,
   ClipboardList,
@@ -35,7 +36,7 @@ export function Header() {
     <>
       <header className="fixed inset-x-0 top-0 z-40 transition-shadow">
         <div className="container-page max-w-[80rem] pt-4 md:pt-5">
-          <div className="flex h-[4.5rem] items-center justify-between gap-6 rounded-full border border-white/55 bg-white/60 px-5 shadow-lg backdrop-blur-lg md:h-[4.75rem]">
+          <div className="flex h-[4.5rem] items-center justify-center gap-6 rounded-full border border-white/55 bg-white/60 px-5 shadow-lg backdrop-blur-lg md:h-[4.75rem] md:justify-between">
             <Link
               to="/"
               aria-label={`${site.name} home`}
@@ -46,7 +47,7 @@ export function Header() {
                 alt={site.name}
                 width={48}
                 height={48}
-                className="size-11 object-contain transition-transform group-hover:rotate-2 md:size-12"
+                className="size-11 object-contain transition-transform duration-300 group-hover:scale-110 group-hover:rotate-2 md:size-12"
               />
             </Link>
 
@@ -70,20 +71,6 @@ export function Header() {
             </nav>
 
             <div className="flex items-center gap-2 md:gap-3">
-              <Link
-                to="/cart"
-                aria-label={
-                  itemCount ? `Your order, ${itemCount} items` : "Your order"
-                }
-                className="relative grid size-11 place-items-center rounded-full text-ink transition-colors hover:bg-ink/5 md:hidden"
-              >
-                <ShoppingBag className="size-[1.4rem]" />
-                {itemCount > 0 && (
-                  <span className="absolute right-0.5 top-0.5 grid min-w-5 place-items-center rounded-full bg-primary px-1 text-[0.7rem] font-bold leading-5 text-white">
-                    {itemCount}
-                  </span>
-                )}
-              </Link>
               <span className="hidden md:inline-block">
                 <Button to="/menu" size="sm">
                   Order Now
@@ -107,7 +94,7 @@ export function Header() {
                 to={to}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "relative flex flex-col items-center justify-center gap-1 rounded-[1rem] px-2 py-2.5 text-[0.68rem] font-semibold transition-colors",
+                  "relative flex flex-col items-center justify-center gap-1 rounded-[1rem] px-1 py-2.5 text-[0.58rem] font-semibold transition-colors sm:text-[0.68rem]",
                   active
                     ? "bg-primary text-white shadow-sm"
                     : "text-ink-soft hover:bg-surface-alt/70 hover:text-ink",
@@ -127,6 +114,16 @@ export function Header() {
           })}
         </div>
       </nav>
+
+      <Link
+        to="/contact"
+        aria-label="Contact us"
+        title="Contact us"
+        className="fixed bottom-[5.75rem] right-4 z-40 flex items-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-bold text-white shadow-[0_10px_28px_rgba(36,25,22,0.24)] animate-float transition-transform hover:-translate-y-1 md:hidden"
+      >
+        <MessageCircle className="size-5" aria-hidden />
+        <span>Contact</span>
+      </Link>
 
       {!isHome && (
         <div aria-hidden className="h-[6rem] shrink-0 md:h-[6.75rem]" />
