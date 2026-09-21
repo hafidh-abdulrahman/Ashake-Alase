@@ -186,7 +186,7 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-surface/15">
-        <div className="container-page flex flex-col gap-2 py-5 text-sm text-surface/60 sm:flex-row sm:justify-between">
+        <div className="container-page flex flex-col gap-2 px-5 pb-24 pt-5 text-sm text-surface/60 sm:flex-row sm:justify-between sm:pb-5">
           <p>
             &copy; {new Date().getFullYear()} {site.name}. All rights reserved.
           </p>
