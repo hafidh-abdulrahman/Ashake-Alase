@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { Info } from "lucide-react";
+import { LockKeyhole } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/Button";
 import { LoadingBlock } from "@/components/ui/PageState";
@@ -89,21 +89,17 @@ export default function PaymentPage() {
         <div className="space-y-8">
           <section aria-labelledby="online-payment">
             <h2 id="online-payment" className="text-2xl font-bold">
-              1. Secure online payment
+              Secure Payment
             </h2>
-            <p className="mt-2 text-ink-soft">
-              Pay securely online for exactly{" "}
-              <strong className="text-ink">{formatNaira(total)}</strong> to the
-              payment provider at the next step.
-            </p>
-            <div className="mt-4 flex items-start gap-3 rounded-2xl bg-surface-alt/30 p-4 text-ink-soft">
-              <Info
+            <div className="mt-4 flex items-start gap-3 rounded-2xl border border-line bg-paper p-4 text-ink-soft">
+              <LockKeyhole
                 className="mt-0.5 size-5 shrink-0 text-primary"
                 aria-hidden
               />
               <p className="text-[0.95rem]">
-                You will be redirected to Paystack&apos;s secure hosted checkout
-                after your order is created.
+                You&apos;ll be redirected to Paystack&apos;s secure checkout to
+                complete your payment. Your order will be created before you
+                proceed.
               </p>
             </div>
           </section>
@@ -112,13 +108,6 @@ export default function PaymentPage() {
             <h2 id="place" className="text-2xl font-bold">
               2. Place your order
             </h2>
-            <div className="mt-3 flex items-start gap-3 rounded-2xl bg-warn-bg p-4 text-warn">
-              <Info className="mt-0.5 size-5 shrink-0" aria-hidden />
-              <p className="text-[0.95rem]">
-                Your order will be processed securely through the online payment
-                provider.
-              </p>
-            </div>
             {submitError && (
               <p role="alert" className="mt-3 text-sm font-medium text-bad">
                 {submitError}
