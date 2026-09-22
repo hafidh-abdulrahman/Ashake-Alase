@@ -120,20 +120,6 @@ const getOrderRow = async (column: "id" | "order_number", value: string) => {
   return data as OrderRow | null;
 };
 
-const createUniqueOrderNumber = async () => {
-  for (let attempt = 0; attempt < 5; attempt += 1) {
-    const orderNumber = `ASH-${Math.floor(1000 + Math.random() * 9000)}`;
-    const { data, error } = await client()
-      .from("orders")
-      .select("id")
-      .eq("order_number", orderNumber)
-      .maybeSingle();
-    if (error) throw error;
-    if (!data) return orderNumber;
-  }
-  throw new Error("Unable to create a unique order number.");
-};
-
 export interface CreateOrderInput {
   draft: CheckoutDraft;
   areaName: string;
@@ -159,42 +145,67 @@ export async function createOrderItems(
 
 export async function createOrder(input: CreateOrderInput): Promise<Order> {
   if (input.items.length === 0) throw new Error("Your cart is empty.");
+  const response = await fetch("/api/orders/create", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      draft: input.draft,
+      areaId: input.draft.areaId,
+      items: input.items.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+      })),
+    }),
+  });
+  const result = (await response.json().catch(() => null)) as
+    | {
+        id?: string;
+        orderNumber?: string;
+        totalAmount?: number;
+        customerEmail?: string;
+      }
+    | { error?: string }
+    | null;
+  if (!response.ok || !result || !("id" in result) || !result.id) {
+    throw new Error(
+      result && "error" in result && result.error
+        ? result.error
+        : "Could not create the order.",
+    );
+  }
+  if (
+    !result.orderNumber ||
+    typeof result.totalAmount !== "number" ||
+    !Number.isFinite(result.totalAmount)
+  ) {
+    throw new Error("The order response was incomplete.");
+  }
+  const orderId = result.id;
+  const totalAmount = result.totalAmount;
   const subtotal = input.items.reduce(
     (sum, item) => sum + item.unitPrice * item.quantity,
     0,
   );
-  const total = subtotal + input.deliveryFee;
-  const orderNumber = await createUniqueOrderNumber();
-  const { data: created, error: orderError } = await client()
-    .from("orders")
-    .insert({
-      order_number: orderNumber,
+
+  return toOrder(
+    {
+      id: orderId,
+      order_number: result.orderNumber,
       customer_name: input.draft.fullName.trim(),
       customer_phone: input.draft.phone.trim(),
-      customer_email: input.draft.email.trim() || null,
+      customer_email: result.customerEmail || input.draft.email.trim(),
       delivery_address: encodeDelivery(input.draft, input.areaName),
       delivery_fee: input.deliveryFee,
       subtotal,
-      total_amount: total,
+      total_amount: totalAmount,
       status: "new",
       payment_status: "pending",
-    })
-    .select("*")
-    .single();
-  if (orderError) throw orderError;
-
-  try {
-    await createOrderItems(created.id, input.items);
-  } catch {
-    await client().from("orders").delete().eq("id", created.id);
-    throw new Error("We could not save the order items. Please try again.");
-  }
-
-  return toOrder(
-    created as OrderRow,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
     input.items.map((item, index) => ({
       id: `new-${index}`,
-      order_id: created.id,
+      order_id: orderId,
       product_id: item.productId,
       product_name: item.name,
       quantity: item.quantity,
