@@ -2,11 +2,17 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { LoadingBlock } from "@/components/ui/PageState";
 import { supabase } from "@/lib/supabase";
+import type { Session } from "@supabase/supabase-js";
+
+const isAdminSession = (session: Session | null) =>
+  session?.user.app_metadata?.role === "admin";
 
 export function AdminGuard({ children }: { children: ReactNode }) {
   const location = useLocation();
   const [checking, setChecking] = useState(true);
-  const [authenticated, setAuthenticated] = useState(false);
+  const [access, setAccess] = useState<"anonymous" | "forbidden" | "allowed">(
+    "anonymous",
+  );
 
   useEffect(() => {
     if (!supabase) {
@@ -17,14 +23,26 @@ export function AdminGuard({ children }: { children: ReactNode }) {
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
-      setAuthenticated(Boolean(data.session));
+      setAccess(
+        data.session
+          ? isAdminSession(data.session)
+            ? "allowed"
+            : "forbidden"
+          : "anonymous",
+      );
       setChecking(false);
     });
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!mounted) return;
-      setAuthenticated(Boolean(session));
+      setAccess(
+        session
+          ? isAdminSession(session)
+            ? "allowed"
+            : "forbidden"
+          : "anonymous",
+      );
       setChecking(false);
     });
 
@@ -35,8 +53,9 @@ export function AdminGuard({ children }: { children: ReactNode }) {
   }, []);
 
   if (checking) return <LoadingBlock label="Checking admin session" />;
-  if (!supabase || !authenticated) {
+  if (!supabase || access === "anonymous") {
     return <Navigate to="/admin/login" replace state={{ from: location }} />;
   }
+  if (access === "forbidden") return <Navigate to="/" replace />;
   return <>{children}</>;
 }

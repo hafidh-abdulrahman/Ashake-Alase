@@ -36,34 +36,65 @@ const readImageFile = (file: File) =>
   });
 
 export default function AdminMenuPage() {
-  const { data: products, loading, reload } = useAllProducts();
+  const { data: products, loading, error, reload } = useAllProducts();
   const [editing, setEditing] = useState<Product | null>(null);
   const [busy, setBusy] = useState(false);
   const [imageError, setImageError] = useState("");
+  const [operationError, setOperationError] = useState<string | null>(null);
 
-  if (loading || !products) return <LoadingBlock label="Loading menu items" />;
+  if (loading) return <LoadingBlock label="Loading menu items" />;
+  if (error || !products) {
+    return (
+      <div className="rounded-3xl border border-bad/30 bg-bad-bg p-6 text-bad">
+        <p>{error ?? "Menu items could not be loaded from Supabase."}</p>
+        <Button className="mt-4" onClick={reload}>
+          Try again
+        </Button>
+      </div>
+    );
+  }
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!editing || !editing.name.trim() || editing.price <= 0) return;
     setBusy(true);
-    await saveProduct({
-      ...editing,
-      name: editing.name.trim(),
-      summary: editing.summary.trim(),
-      description: editing.description.trim(),
-    });
-    setBusy(false);
-    setEditing(null);
-    reload();
+    setOperationError(null);
+    try {
+      await saveProduct({
+        ...editing,
+        name: editing.name.trim(),
+        summary: editing.summary.trim(),
+        description: editing.description.trim(),
+      });
+      setEditing(null);
+      reload();
+    } catch (error) {
+      setOperationError(
+        error instanceof Error
+          ? error.message
+          : "The menu item could not be saved.",
+      );
+    } finally {
+      setBusy(false);
+    }
   };
 
   const remove = async (product: Product) => {
     if (!window.confirm(`Remove ${product.name} from the menu?`)) return;
     setBusy(true);
-    await removeProduct(product.id);
-    setBusy(false);
-    reload();
+    setOperationError(null);
+    try {
+      await removeProduct(product.id);
+      reload();
+    } catch (error) {
+      setOperationError(
+        error instanceof Error
+          ? error.message
+          : "The menu item could not be removed.",
+      );
+    } finally {
+      setBusy(false);
+    }
   };
 
   const update = <K extends keyof Product>(key: K, value: Product[K]) =>
@@ -277,6 +308,12 @@ export default function AdminMenuPage() {
             </Button>
           </div>
         </form>
+      )}
+
+      {operationError && (
+        <p role="alert" className="mt-4 text-sm font-medium text-bad">
+          {operationError}
+        </p>
       )}
 
       <div className="mt-8 grid gap-4 md:grid-cols-2">

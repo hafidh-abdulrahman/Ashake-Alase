@@ -31,6 +31,11 @@ interface PaystackResponse {
   };
 }
 
+import {
+  getServerSupabaseConfig,
+  supabaseServerRequest,
+} from "../_lib/supabaseServer";
+
 const jsonError = (res: VercelResponseLike, status: number, message: string) =>
   res.status(status).json({ error: message });
 
@@ -48,15 +53,13 @@ export default async function handler(
   }
 
   const secretKey = process.env.PAYSTACK_SECRET_KEY;
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-  const supabaseAnonKey =
-    process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+  const supabase = getServerSupabaseConfig();
 
-  if (!secretKey || !supabaseUrl || !supabaseAnonKey) {
+  if (!secretKey || !supabase) {
     console.error("[paystack] missing server configuration", {
       hasSecretKey: Boolean(secretKey),
-      hasSupabaseUrl: Boolean(supabaseUrl),
-      hasSupabaseKey: Boolean(supabaseAnonKey),
+      hasSupabaseUrl: Boolean(supabase?.url),
+      hasServiceRoleKey: Boolean(supabase?.serviceRoleKey),
     });
     jsonError(res, 500, "Payment service is not configured.");
     return;
@@ -73,7 +76,7 @@ export default async function handler(
   console.info("[paystack] order lookup", { orderId });
 
   try {
-    const orderUrl = new URL(`${supabaseUrl}/rest/v1/orders`);
+    const orderUrl = new URL(`${supabase.url}/rest/v1/orders`);
     orderUrl.searchParams.set(
       "select",
       "id,order_number,customer_email,total_amount,payment_status",
@@ -81,12 +84,10 @@ export default async function handler(
     orderUrl.searchParams.set("id", `eq.${orderId}`);
     orderUrl.searchParams.set("limit", "1");
 
-    const orderResponse = await fetch(orderUrl, {
-      headers: {
-        apikey: supabaseAnonKey,
-        Authorization: `Bearer ${supabaseAnonKey}`,
-      },
-    });
+    const orderResponse = await supabaseServerRequest(
+      orderUrl.toString(),
+      supabase.serviceRoleKey,
+    );
     if (!orderResponse.ok) {
       const responseBody = await orderResponse.text();
       console.error("[paystack] Supabase order lookup failed", {

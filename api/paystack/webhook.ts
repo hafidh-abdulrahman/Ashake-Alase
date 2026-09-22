@@ -1,4 +1,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import {
+  getServerSupabaseConfig,
+  supabaseServerRequest,
+} from "../_lib/supabaseServer";
 
 interface VercelRequestLike {
   method?: string;
@@ -62,17 +66,6 @@ const signaturesMatch = (
   );
 };
 
-const supabaseRequest = async (url: string, key: string, init?: RequestInit) =>
-  fetch(url, {
-    ...init,
-    headers: {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-      ...(init?.headers || {}),
-    },
-  });
-
 export default async function handler(
   req: VercelRequestLike,
   res: VercelResponseLike,
@@ -81,15 +74,19 @@ export default async function handler(
     return json(res, 405, { error: "Method not allowed." });
 
   const secretKey = process.env.PAYSTACK_SECRET_KEY;
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-  const supabaseKey =
-    process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+  const supabase = getServerSupabaseConfig();
   const signature = header(req, "x-paystack-signature");
 
-  if (!secretKey || !supabaseUrl || !supabaseKey || !signature) {
-    console.warn(
-      "[paystack] webhook rejected: missing configuration or signature",
-    );
+  if (!secretKey || !supabase) {
+    console.error("[paystack] webhook missing server configuration", {
+      hasSecretKey: Boolean(secretKey),
+      hasSupabaseUrl: Boolean(supabase?.url),
+      hasServiceRoleKey: Boolean(supabase?.serviceRoleKey),
+    });
+    return json(res, 500, { error: "Payment service is not configured." });
+  }
+  if (!signature) {
+    console.warn("[paystack] webhook rejected: missing signature");
     return json(res, 401, { error: "Invalid webhook." });
   }
 
@@ -109,7 +106,7 @@ export default async function handler(
     }
 
     const reference = event.data.reference;
-    const orderUrl = new URL(`${supabaseUrl}/rest/v1/orders`);
+    const orderUrl = new URL(`${supabase.url}/rest/v1/orders`);
     orderUrl.searchParams.set(
       "select",
       "id,order_number,customer_email,total_amount,payment_status",
@@ -117,9 +114,9 @@ export default async function handler(
     orderUrl.searchParams.set("order_number", `eq.${reference}`);
     orderUrl.searchParams.set("limit", "1");
 
-    const orderResponse = await supabaseRequest(
+    const orderResponse = await supabaseServerRequest(
       orderUrl.toString(),
-      supabaseKey,
+      supabase.serviceRoleKey,
     );
     if (!orderResponse.ok) {
       console.error("[paystack] webhook order lookup failed", {
@@ -175,9 +172,9 @@ export default async function handler(
       return json(res, 200, { received: true });
     }
 
-    const updateResponse = await supabaseRequest(
-      `${supabaseUrl}/rest/v1/orders?id=eq.${encodeURIComponent(order.id)}&payment_status=eq.pending`,
-      supabaseKey,
+    const updateResponse = await supabaseServerRequest(
+      `${supabase.url}/rest/v1/orders?id=eq.${encodeURIComponent(order.id)}&payment_status=eq.pending`,
+      supabase.serviceRoleKey,
       {
         method: "PATCH",
         headers: { Prefer: "return=minimal" },

@@ -35,12 +35,19 @@ export default function AdminLoginPage() {
     event.preventDefault();
     setBusy(true);
     setError(null);
-    const { error: signInError } = await authClient.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    });
+    const { data, error: signInError } =
+      await authClient.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
     if (signInError) {
       setError("Invalid email or password. Please try again.");
+      setBusy(false);
+      return;
+    }
+    if (data.user?.app_metadata?.role !== "admin") {
+      await authClient.auth.signOut();
+      setError("You do not have permission to access the admin dashboard.");
       setBusy(false);
       return;
     }

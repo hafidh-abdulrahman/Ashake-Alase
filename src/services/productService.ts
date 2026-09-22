@@ -160,21 +160,17 @@ export async function getFeaturedProduct(): Promise<Product | null> {
 
 export async function listAllProducts(): Promise<Product[]> {
   if (!supabase) {
-    return [...mockProducts];
+    throw new Error("Supabase is not configured.");
   }
 
-  try {
-    const { data, error } = await withReadTimeout(
-      client()
-        .from("products")
-        .select(PRODUCT_COLUMNS)
-        .order("created_at", { ascending: false }),
-    );
-    if (error) throw error;
-    return (data as ProductRow[]).map(toProduct);
-  } catch {
-    return [...mockProducts];
-  }
+  const { data, error } = await withReadTimeout(
+    client()
+      .from("products")
+      .select(PRODUCT_COLUMNS)
+      .order("created_at", { ascending: false }),
+  );
+  if (error) throw error;
+  return (data as ProductRow[]).map(toProduct);
 }
 
 export async function saveProduct(product: Product): Promise<Product> {
