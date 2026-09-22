@@ -10,6 +10,10 @@ interface ProductRow {
   image_url: string | null;
   category: string;
   stock_quantity: number | null;
+  max_per_order: number | null;
+  free_delivery: boolean;
+  show_stock_quantity: boolean;
+  show_limited_availability: boolean;
   is_available: boolean;
   created_at: string;
   updated_at: string;
@@ -60,7 +64,10 @@ const toProduct = (row: ProductRow): Product => ({
   placeholder: placeholderFor(row.category),
   includes: [],
   availableQuantity: row.stock_quantity,
-  maxPerOrder: 1,
+  maxPerOrder: row.max_per_order,
+  freeDelivery: row.free_delivery,
+  showStockQuantity: row.show_stock_quantity,
+  showLimitedAvailability: row.show_limited_availability,
   isActive: row.is_available,
   featured: false,
   category: row.category as ProductCategory,
@@ -73,6 +80,10 @@ const toRow = (product: Product) => ({
   image_url: product.image || null,
   category: product.category,
   stock_quantity: product.availableQuantity,
+  max_per_order: product.maxPerOrder,
+  free_delivery: product.freeDelivery,
+  show_stock_quantity: product.showStockQuantity,
+  show_limited_availability: product.showLimitedAvailability,
   is_available: product.isActive,
 });
 

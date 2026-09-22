@@ -58,7 +58,7 @@ const CartContext = createContext<CartValue | null>(null);
 
 const clampQty = (product: Product, qty: number) => {
   const cap = Math.min(
-    product.maxPerOrder,
+    product.maxPerOrder ?? Infinity,
     product.availableQuantity ?? Infinity,
   );
   return Math.max(1, Math.min(qty, cap));
@@ -179,7 +179,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const subtotal = lines.reduce((sum, l) => sum + l.lineTotal, 0);
   const itemCount = lines.reduce((sum, l) => sum + l.quantity, 0);
   const selectedArea = areas.find((a) => a.id === draft.areaId) ?? null;
-  const deliveryFee = selectedArea ? selectedArea.fee : null;
+  const allItemsFreeDelivery =
+    lines.length > 0 && lines.every((line) => line.product.freeDelivery);
+  const deliveryFee = selectedArea
+    ? allItemsFreeDelivery
+      ? 0
+      : selectedArea.fee
+    : null;
   const total = subtotal + (deliveryFee ?? 0);
 
   const value: CartValue = {

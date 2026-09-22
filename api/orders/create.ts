@@ -27,6 +27,8 @@ interface ProductRecord {
   name: string;
   price: number | string;
   stock_quantity: number | null;
+  max_per_order: number | null;
+  free_delivery: boolean;
   is_available: boolean;
 }
 
@@ -78,6 +80,27 @@ const getSupabaseRows = async <T>(
 
 const deleteOrder = async (url: string, serviceRoleKey: string) => {
   await supabaseServerRequest(url, serviceRoleKey, { method: "DELETE" });
+};
+
+const updateProductStock = async (
+  baseUrl: string,
+  serviceRoleKey: string,
+  productId: string,
+  expectedStock: number,
+  nextStock: number,
+) => {
+  const url = new URL(`${baseUrl}/products`);
+  url.searchParams.set("id", `eq.${productId}`);
+  url.searchParams.set("stock_quantity", `eq.${expectedStock}`);
+  url.searchParams.set("select", "id,stock_quantity");
+  const response = await supabaseServerRequest(url.toString(), serviceRoleKey, {
+    method: "PATCH",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify({ stock_quantity: nextStock }),
+  });
+  if (!response.ok) return false;
+  const rows = (await response.json()) as Array<{ id: string }>;
+  return rows.length === 1;
 };
 
 export default async function handler(
@@ -139,9 +162,7 @@ export default async function handler(
         : 0,
   }));
   if (
-    normalizedItems.some(
-      (item) => !item.productId || item.quantity < 1 || item.quantity > 100,
-    ) ||
+    normalizedItems.some((item) => !item.productId || item.quantity < 1) ||
     new Set(normalizedItems.map((item) => item.productId)).size !==
       normalizedItems.length
   ) {
@@ -149,12 +170,18 @@ export default async function handler(
     return;
   }
 
+  const decrementedStocks: Array<{
+    productId: string;
+    previous: number;
+    next: number;
+  }> = [];
+
   try {
     const baseUrl = `${supabase.url}/rest/v1`;
     const productUrl = new URL(`${baseUrl}/products`);
     productUrl.searchParams.set(
       "select",
-      "id,name,price,stock_quantity,is_available",
+      "id,name,price,stock_quantity,max_per_order,free_delivery,is_available",
     );
     productUrl.searchParams.set(
       "id",
@@ -194,6 +221,14 @@ export default async function handler(
       const product = productsById.get(item.productId);
       if (!product) throw new Error("One or more products are unavailable.");
       if (
+        product.max_per_order !== null &&
+        item.quantity > product.max_per_order
+      ) {
+        throw new Error(
+          `Only ${product.max_per_order} may be ordered at once.`,
+        );
+      }
+      if (
         product.stock_quantity !== null &&
         item.quantity > product.stock_quantity
       ) {
@@ -211,18 +246,39 @@ export default async function handler(
         quantity: item.quantity,
         unit_price: unitPrice,
         total_price: unitPrice * item.quantity,
+        free_delivery: product.free_delivery,
       };
     });
     const subtotal = snapshotItems.reduce(
       (sum, item) => sum + item.total_price,
       0,
     );
-    const deliveryFee = Number(area.delivery_fee);
+    const deliveryFee = snapshotItems.every((item) => item.free_delivery)
+      ? 0
+      : Number(area.delivery_fee);
     if (!Number.isFinite(deliveryFee) || deliveryFee < 0) {
       throw new Error("The delivery fee is invalid.");
     }
     const total = subtotal + deliveryFee;
     const orderId = randomUUID();
+    for (const item of snapshotItems) {
+      const product = productsById.get(item.product_id);
+      if (!product || product.stock_quantity === null) continue;
+      const next = product.stock_quantity - item.quantity;
+      const changed = await updateProductStock(
+        baseUrl,
+        supabase.serviceRoleKey,
+        product.id,
+        product.stock_quantity,
+        next,
+      );
+      if (!changed) throw new Error("Some items are no longer available.");
+      decrementedStocks.push({
+        productId: product.id,
+        previous: product.stock_quantity,
+        next,
+      });
+    }
 
     let orderNumber = "";
     for (let attempt = 0; attempt < 5; attempt += 1) {
@@ -279,7 +335,10 @@ export default async function handler(
         method: "POST",
         headers: { Prefer: "return=minimal" },
         body: JSON.stringify(
-          snapshotItems.map((item) => ({ ...item, order_id: orderId })),
+          snapshotItems.map(({ free_delivery: _freeDelivery, ...item }) => ({
+            ...item,
+            order_id: orderId,
+          })),
         ),
       },
     );
@@ -298,6 +357,15 @@ export default async function handler(
       customerEmail: email,
     });
   } catch (error) {
+    for (const stock of decrementedStocks.reverse()) {
+      await updateProductStock(
+        `${supabase.url}/rest/v1`,
+        supabase.serviceRoleKey,
+        stock.productId,
+        stock.next,
+        stock.previous,
+      );
+    }
     const message =
       error instanceof Error ? error.message : "Could not create the order.";
     jsonError(res, 400, message);

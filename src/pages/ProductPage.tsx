@@ -131,7 +131,10 @@ export default function ProductPage() {
                     Add to Order
                   </Button>
                   <p className="mt-3 text-center text-sm text-ink-soft">
-                    Up to {max} per order. Delivery is added at checkout.
+                    {p.maxPerOrder === null
+                      ? "Choose the quantity you need."
+                      : `Up to ${max} per order.`}{" "}
+                    Delivery is added at checkout.
                   </p>
                 </>
               )}

@@ -19,7 +19,10 @@ const blank = (): Product => ({
   placeholder: "plate",
   includes: [],
   availableQuantity: null,
-  maxPerOrder: 1,
+  maxPerOrder: null,
+  freeDelivery: false,
+  showStockQuantity: false,
+  showLimitedAvailability: false,
   isActive: true,
   featured: false,
   category: "food",
@@ -176,26 +179,48 @@ export default function AdminMenuPage() {
             onChange={(e) => update("price", Number(e.target.value))}
             required
           />
-          <TextField
-            label="Available quantity"
-            type="number"
-            min="0"
-            placeholder="Leave blank for unlimited"
-            value={editing.availableQuantity ?? ""}
+          <SelectField
+            label="Stock availability"
+            value={editing.availableQuantity === null ? "unlimited" : "limited"}
             onChange={(e) =>
               update(
                 "availableQuantity",
-                e.target.value === "" ? null : Number(e.target.value),
+                e.target.value === "unlimited"
+                  ? null
+                  : (editing.availableQuantity ?? 1),
               )
             }
-          />
+          >
+            <option value="unlimited">Unlimited units</option>
+            <option value="limited">Limited units</option>
+          </SelectField>
+          {editing.availableQuantity !== null && (
+            <TextField
+              label="Stock quantity"
+              type="number"
+              min="0"
+              value={editing.availableQuantity}
+              onChange={(e) =>
+                update(
+                  "availableQuantity",
+                  e.target.value === "" ? 0 : Number(e.target.value),
+                )
+              }
+            />
+          )}
           <TextField
             label="Maximum per order"
             type="number"
             min="1"
-            value={editing.maxPerOrder}
+            placeholder="Leave blank for no artificial maximum"
+            value={editing.maxPerOrder ?? ""}
             onChange={(e) =>
-              update("maxPerOrder", Math.max(1, Number(e.target.value)))
+              update(
+                "maxPerOrder",
+                e.target.value === ""
+                  ? null
+                  : Math.max(1, Number(e.target.value)),
+              )
             }
           />
           <div>
@@ -284,6 +309,48 @@ export default function AdminMenuPage() {
               )
             }
           />
+          <div className="flex flex-wrap gap-x-6 gap-y-3 rounded-xl border border-line bg-surface p-4 lg:col-span-2">
+            <p className="w-full text-sm font-bold">Delivery</p>
+            <label className="flex items-center gap-2 text-sm font-semibold">
+              <input
+                type="radio"
+                name="delivery-fee"
+                checked={!editing.freeDelivery}
+                onChange={() => update("freeDelivery", false)}
+              />
+              Use normal delivery fee
+            </label>
+            <label className="flex items-center gap-2 text-sm font-semibold">
+              <input
+                type="radio"
+                name="delivery-fee"
+                checked={editing.freeDelivery}
+                onChange={() => update("freeDelivery", true)}
+              />
+              Free delivery
+            </label>
+          </div>
+          <div className="flex flex-wrap gap-x-6 gap-y-3 rounded-xl border border-line bg-surface p-4 lg:col-span-2">
+            <p className="w-full text-sm font-bold">Availability display</p>
+            <label className="flex items-center gap-2 text-sm font-semibold">
+              <input
+                type="checkbox"
+                checked={editing.showStockQuantity}
+                onChange={(e) => update("showStockQuantity", e.target.checked)}
+              />
+              Show exact stock quantity
+            </label>
+            <label className="flex items-center gap-2 text-sm font-semibold">
+              <input
+                type="checkbox"
+                checked={editing.showLimitedAvailability}
+                onChange={(e) =>
+                  update("showLimitedAvailability", e.target.checked)
+                }
+              />
+              Show limited availability
+            </label>
+          </div>
           <div className="flex flex-wrap items-center gap-5 rounded-xl border border-line bg-surface p-4 lg:col-span-2">
             <label className="flex items-center gap-2 text-sm font-semibold">
               <input

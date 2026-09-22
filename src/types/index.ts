@@ -30,8 +30,11 @@ export interface Product {
   includes: string[];
   /** Units still available. `null` means unlimited. */
   availableQuantity: number | null;
-  /** Max units one customer can order at once */
-  maxPerOrder: number;
+  /** Max units one customer can order at once. `null` means no artificial cap. */
+  maxPerOrder: number | null;
+  freeDelivery: boolean;
+  showStockQuantity: boolean;
+  showLimitedAvailability: boolean;
   isActive: boolean;
   featured: boolean;
   category: ProductCategory;

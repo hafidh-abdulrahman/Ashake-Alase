@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/Button";
 import { FoodImage } from "@/components/ui/FoodImage";
 import { useFeaturedProduct } from "@/hooks/useData";
 import { formatNaira, formatDate } from "@/lib/format";
+import { availabilityText } from "@/lib/availability";
 
 export function FeaturedOffer() {
   const { data: p } = useFeaturedProduct();
@@ -46,11 +47,7 @@ export function FeaturedOffer() {
               </div>
               <div>
                 <dt className="text-sm text-white/60">Availability</dt>
-                <dd className="text-lg font-semibold">
-                  {p.availableQuantity != null
-                    ? `${p.availableQuantity} packs left`
-                    : "Available now"}
-                </dd>
+                <dd className="text-lg font-semibold">{availabilityText(p)}</dd>
               </div>
               {p.campaign?.endsAt && (
                 <div>
