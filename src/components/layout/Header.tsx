@@ -71,6 +71,19 @@ export function Header() {
             </nav>
 
             <div className="flex items-center gap-2 md:gap-3">
+              <Link
+                to="/cart"
+                aria-label="View cart"
+                title="View cart"
+                className="relative hidden size-10 items-center justify-center rounded-full border border-ink/15 text-ink-soft transition-colors hover:border-primary hover:text-primary md:inline-flex"
+              >
+                <ShoppingBag className="size-[1.15rem]" aria-hidden />
+                {itemCount > 0 && (
+                  <span className="absolute -right-1 -top-1 grid min-w-4 place-items-center rounded-full bg-primary px-1 text-[0.55rem] font-bold leading-4 text-white">
+                    {itemCount}
+                  </span>
+                )}
+              </Link>
               <span className="hidden md:inline-block">
                 <Button to="/menu" size="sm">
                   Order Now

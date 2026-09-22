@@ -9,7 +9,7 @@ export default function ContactPage() {
 
   return (
     <div className="container-page pb-28 pt-6 sm:pb-32 lg:pb-32 lg:pt-10">
-      <section className="rounded-[2rem] bg-[#f7f0e8] p-5 shadow-[0_18px_40px_rgba(36,25,22,0.06)] sm:p-8 lg:p-10">
+      <section className="rounded-[2rem] bg-surface p-5 shadow-[0_18px_40px_rgba(36,25,22,0.06)] sm:p-8 lg:p-10">
         <div className="max-w-2xl">
           <p className="eyebrow text-primary">Contact</p>
           <h1 className="mt-4 text-[clamp(2.5rem,5vw,4.25rem)] text-ink">
@@ -83,7 +83,7 @@ export default function ContactPage() {
           <div className="mt-5 space-y-3">
             <a
               href={`mailto:${email}`}
-              className="flex items-center gap-3 rounded-2xl border border-line bg-paper p-3.5 text-ink transition hover:border-primary/50 hover:bg-[#fffaf5]"
+              className="flex items-center gap-3 rounded-2xl border border-line bg-paper p-3.5 text-ink transition hover:border-primary/50 hover:bg-surface"
             >
               <span className="grid size-10 place-items-center rounded-full bg-primary/10 text-primary">
                 <Mail className="size-4" aria-hidden />
@@ -98,7 +98,7 @@ export default function ContactPage() {
 
             <a
               href={`https://wa.me/${phone.replace(/\D/g, "")}`}
-              className="flex items-center gap-3 rounded-2xl border border-line bg-paper p-3.5 text-ink transition hover:border-primary/50 hover:bg-[#fffaf5]"
+              className="flex items-center gap-3 rounded-2xl border border-line bg-paper p-3.5 text-ink transition hover:border-primary/50 hover:bg-surface"
             >
               <span className="grid size-10 place-items-center rounded-full bg-primary/10 text-primary">
                 <Phone className="size-4" aria-hidden />
@@ -169,7 +169,7 @@ export default function ContactPage() {
           </div>
         </div>
 
-        <div className="rounded-[1.9rem] border border-line bg-[linear-gradient(180deg,#fffaf5_0%,#fff_100%)] p-4 shadow-[0_22px_50px_rgba(36,25,22,0.08)] sm:p-6 lg:p-7">
+        <div className="rounded-[1.9rem] border border-line bg-surface p-4 shadow-[0_22px_50px_rgba(36,25,22,0.08)] sm:p-6 lg:p-7">
           <h2 className="text-2xl font-semibold text-ink">Send a Message</h2>
 
           <form className="mt-5 space-y-4">

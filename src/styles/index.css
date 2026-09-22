@@ -11,13 +11,13 @@
   --font-serif: Georgia, "Times New Roman", serif;
 
   --color-surface: #ffffff;
-  --color-surface-alt: #ead7b9;
-  --color-paper: #fffaf1;
+  --color-surface-alt: #ffffff;
+  --color-paper: #ffffff;
   --color-ink: #241916;
   --color-ink-soft: #705b51;
   --color-primary: #c9532c;
   --color-primary-dark: #a23b21;
-  --color-accent: #e6b34f;
+  --color-accent: #c9532c;
   --color-line: #dcc8b1;
 
   --color-ok: #1f6b3a;
