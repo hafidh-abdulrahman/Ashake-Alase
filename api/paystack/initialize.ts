@@ -34,7 +34,7 @@ interface PaystackResponse {
 import {
   getServerSupabaseConfig,
   supabaseServerRequest,
-} from "../_lib/supabaseServer";
+} from "../_lib/supabaseServer.js";
 
 const jsonError = (res: VercelResponseLike, status: number, message: string) =>
   res.status(status).json({ error: message });

@@ -2,13 +2,15 @@ import { ArrowUpRight, Plus } from "lucide-react";
 import { Link as RouterLink } from "react-router-dom";
 import type { Product } from "@/types";
 import { FoodImage } from "@/components/ui/FoodImage";
+import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { formatNaira } from "@/lib/format";
 import { availabilityText, isSoldOut } from "@/lib/availability";
 
 export function ProductCard({ product: p }: { product: Product }) {
-  const { addItem } = useCart();
+  const { addItem, productsReady } = useCart();
   const soldOut = isSoldOut(p);
+  const [addError, setAddError] = useState(false);
 
   return (
     <div className="group block overflow-hidden rounded-2xl bg-paper shadow-[0_1px_0_rgb(36_25_22/0.06),0_16px_30px_-22px_rgb(36_25_22/0.5)] transition-transform duration-300 hover:-translate-y-1">
@@ -56,13 +58,23 @@ export function ProductCard({ product: p }: { product: Product }) {
           type="button"
           aria-label={`Add ${p.name} to cart`}
           title={soldOut ? "Sold out" : "Add to cart"}
-          disabled={soldOut}
-          onClick={() => addItem(p.id, 1)}
+          disabled={soldOut || !productsReady}
+          onClick={() => {
+            setAddError(!addItem(p.id, 1));
+          }}
           className="grid size-8 place-items-center rounded-full bg-primary text-white transition-colors hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-40"
         >
           <Plus className="size-4" aria-hidden />
         </button>
       </div>
+      {addError && (
+        <p
+          role="alert"
+          className="px-4 pb-3 text-xs font-medium text-bad lg:px-5"
+        >
+          Unable to add this item right now. Please try again.
+        </p>
+      )}
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import {
   getServerSupabaseConfig,
   supabaseServerRequest,
-} from "../_lib/supabaseServer";
+} from "../_lib/supabaseServer.js";
 
 interface VercelRequestLike {
   method?: string;

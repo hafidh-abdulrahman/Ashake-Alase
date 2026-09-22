@@ -37,7 +37,7 @@ interface CartValue {
   itemCount: number;
   subtotal: number;
   ready: boolean;
-  addItem: (productId: string, quantity: number) => void;
+  addItem: (productId: string, quantity: number) => boolean;
   setQuantity: (productId: string, quantity: number) => void;
   removeItem: (productId: string) => void;
   clear: () => void;
@@ -47,6 +47,7 @@ interface CartValue {
   areas: DeliveryArea[];
   areasLoading: boolean;
   areasError: string | null;
+  productsReady: boolean;
   selectedArea: DeliveryArea | null;
   /** null until the customer picks a delivery area */
   deliveryFee: number | null;
@@ -72,6 +73,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     ...readJson<Partial<CheckoutDraft>>(DRAFT_KEY, {}),
   }));
   const [products, setProducts] = useState<Product[]>([]);
+  const [productsReady, setProductsReady] = useState(false);
   const [areas, setAreas] = useState<DeliveryArea[]>([]);
   const [areasLoading, setAreasLoading] = useState(true);
   const [areasError, setAreasError] = useState<string | null>(null);
@@ -86,6 +88,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (cancelled) return;
         if (productsResult.status === "fulfilled")
           setProducts(productsResult.value);
+        setProductsReady(true);
         if (areasResult.status === "fulfilled") {
           setAreas(areasResult.value);
         } else {
@@ -125,7 +128,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addItem = useCallback(
     (productId: string, quantity: number) => {
       const product = productById.get(productId);
-      if (!product) return;
+      if (!product) return false;
       setRaw((prev) => {
         const existing = prev.find((l) => l.productId === productId);
         if (existing) {
@@ -137,6 +140,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
         return [...prev, { productId, quantity: clampQty(product, quantity) }];
       });
+      return true;
     },
     [productById],
   );
@@ -192,6 +196,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     areas,
     areasLoading,
     areasError,
+    productsReady,
     selectedArea,
     deliveryFee,
     total,

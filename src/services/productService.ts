@@ -88,19 +88,15 @@ export async function listProducts(
     return mockListProducts(options);
   }
 
-  try {
-    let query = client()
-      .from("products")
-      .select(PRODUCT_COLUMNS)
-      .order("created_at", { ascending: false });
-    if (!options.includeInactive) query = query.eq("is_available", true);
-    if (options.category) query = query.eq("category", options.category);
-    const { data, error } = await withReadTimeout(query);
-    if (error) throw error;
-    return (data as ProductRow[]).map(toProduct);
-  } catch {
-    return mockListProducts(options);
-  }
+  let query = client()
+    .from("products")
+    .select(PRODUCT_COLUMNS)
+    .order("created_at", { ascending: false });
+  if (!options.includeInactive) query = query.eq("is_available", true);
+  if (options.category) query = query.eq("category", options.category);
+  const { data, error } = await withReadTimeout(query);
+  if (error) throw error;
+  return (data as ProductRow[]).map(toProduct);
 }
 
 export async function getProduct(id: string): Promise<Product | null> {
