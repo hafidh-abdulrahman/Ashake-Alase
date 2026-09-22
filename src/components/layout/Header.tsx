@@ -47,7 +47,7 @@ export function Header() {
                 alt={site.name}
                 width={48}
                 height={48}
-                className="size-11 object-contain transition-transform duration-300 group-hover:scale-110 group-hover:rotate-2 md:size-12"
+                className="size-11 animate-logo-zoom object-contain transition-all duration-300 group-hover:rotate-2 group-hover:drop-shadow-[0_8px_8px_rgb(36_25_22/0.2)] md:size-12"
               />
             </Link>
 
