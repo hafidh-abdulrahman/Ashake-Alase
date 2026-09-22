@@ -2,7 +2,7 @@ import { orderingSteps } from "@/data/mock/content";
 
 export function HowItWorks() {
   return (
-    <section className="bg-surface-alt grain">
+    <section className="bg-surface">
       <div className="container-page section-y">
         <p className="eyebrow text-primary">No long stories. Just good food.</p>
         <h2 className="mt-3 max-w-xl text-4xl md:text-6xl">
