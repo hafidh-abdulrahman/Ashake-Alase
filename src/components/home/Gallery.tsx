@@ -1,8 +1,33 @@
-import { FoodImage } from "@/components/ui/FoodImage";
-import { gallery } from "@/data/mock/content";
 import { cn } from "@/lib/cn";
 
 const spans = { tall: "row-span-2", wide: "col-span-2", square: "" } as const;
+const galleryVideos = [
+  {
+    src: "/videos/display-1.mp4",
+    alt: "Ashake Alase food display 1",
+    size: "tall",
+  },
+  {
+    src: "/videos/display-3.mp4",
+    alt: "Ashake Alase food display 3",
+    size: "tall",
+  },
+  {
+    src: "/videos/display-4.mp4",
+    alt: "Ashake Alase food display 4",
+    size: "square",
+  },
+  {
+    src: "/videos/display-5.mp4",
+    alt: "Ashake Alase food display 5",
+    size: "wide",
+  },
+  {
+    src: "/videos/display-6.mp4",
+    alt: "Ashake Alase food display 6",
+    size: "square",
+  },
+] as const;
 
 export function Gallery() {
   return (
@@ -13,16 +38,22 @@ export function Gallery() {
           The table is calling.
         </h2>
         <div className="mt-10 grid auto-rows-[9.5rem] grid-flow-dense grid-cols-2 gap-3 sm:auto-rows-[12rem] md:grid-cols-4 md:gap-4 lg:mt-14 lg:auto-rows-[14rem]">
-          {gallery.map((g) => (
+          {galleryVideos.map((video) => (
             <div
-              key={g.src}
-              className={cn("group overflow-hidden rounded-2xl", spans[g.size])}
+              key={video.src}
+              className={cn(
+                "group overflow-hidden rounded-2xl",
+                spans[video.size],
+              )}
             >
-              <FoodImage
-                src={g.src}
-                alt={g.alt}
-                placeholder={g.placeholder}
-                className="size-full transition-transform duration-500 group-hover:scale-[1.04]"
+              <video
+                src={video.src}
+                aria-label={video.alt}
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
               />
             </div>
           ))}

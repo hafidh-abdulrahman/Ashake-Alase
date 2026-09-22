@@ -71,8 +71,8 @@ export function Hero() {
           />
           <div className="relative overflow-hidden rounded-[3rem] bg-surface-alt shadow-2xl lg:rotate-2">
             <FoodImage
-              src={heroContent.image}
-              alt={heroContent.imageAlt}
+              src="/images/hero%201.jfif"
+              alt="Ashake Alase food selection"
               placeholder={heroContent.placeholder}
               priority
               className="aspect-[4/3] size-full lg:aspect-[5/4]"
