@@ -12,6 +12,7 @@ import { OrderTracker } from "@/components/order/OrderTracker";
 import { OrderTotals } from "@/components/order/OrderTotals";
 import { SummaryLines } from "@/components/order/SummaryLines";
 import { formatDate, formatPlainDate } from "@/lib/format";
+import { confirmOrderDelivery } from "@/services/orderService";
 
 export default function TrackOrderPage() {
   const [orderNumber, setOrderNumber] = useState("");
@@ -19,9 +20,15 @@ export default function TrackOrderPage() {
   const [lookupNumber, setLookupNumber] = useState<string>();
   const [lookupPhone, setLookupPhone] = useState<string>();
   const [submitted, setSubmitted] = useState(false);
+  const [confirmingDelivery, setConfirmingDelivery] = useState(false);
+  const [deliveryFeedback, setDeliveryFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
   const {
     data: order,
     loading,
+    setData,
     reload,
   } = useCustomerOrder(lookupNumber, lookupPhone);
 
@@ -36,6 +43,29 @@ export default function TrackOrderPage() {
     setSubmitted(true);
     setLookupNumber(orderNumber.trim());
     setLookupPhone(phone.trim());
+  };
+
+  const confirmDelivery = async () => {
+    if (!order || order.status !== "out_for_delivery" || confirmingDelivery)
+      return;
+    setConfirmingDelivery(true);
+    setDeliveryFeedback(null);
+    try {
+      const updated = await confirmOrderDelivery(order.id);
+      if (!updated) throw new Error("Order update returned no order.");
+      setData(updated);
+      setDeliveryFeedback({
+        type: "success",
+        message: "Thank you. Your order has been marked as delivered.",
+      });
+    } catch {
+      setDeliveryFeedback({
+        type: "error",
+        message: "We could not confirm delivery. Please try again.",
+      });
+    } finally {
+      setConfirmingDelivery(false);
+    }
   };
 
   const notFound = submitted && !loading && !order;
@@ -107,6 +137,28 @@ export default function TrackOrderPage() {
               <div className="mt-8 overflow-x-auto pb-2">
                 <OrderTracker status={order.status} />
               </div>
+              {order.status === "out_for_delivery" && (
+                <div className="mt-8 border-t border-surface/15 pt-6">
+                  <p className="font-semibold">Have you received your order?</p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="mt-4"
+                    loading={confirmingDelivery}
+                    onClick={confirmDelivery}
+                  >
+                    Yes, I received my order
+                  </Button>
+                  {deliveryFeedback && (
+                    <p
+                      role={deliveryFeedback.type === "error" ? "alert" : "status"}
+                      className={`mt-3 text-sm font-semibold ${deliveryFeedback.type === "success" ? "text-ok" : "text-warn"}`}
+                    >
+                      {deliveryFeedback.message}
+                    </p>
+                  )}
+                </div>
+              )}
             </section>
 
             <div className="grid gap-6 md:grid-cols-2">

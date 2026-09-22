@@ -59,24 +59,16 @@ export type PaymentStatus =
   | "pending"
   | "awaiting_verification"
   | "verified"
-  | "rejected";
+  | "rejected"
+  | "paid";
 
 /** bank_transfer is live in Phase 1. Others are reserved for automated payments later. */
 export type PaymentMethod = "bank_transfer" | "paystack" | "flutterwave";
-
-export interface PaymentReceipt {
-  fileName: string;
-  fileType: string;
-  fileSize: number;
-  /** Small preview kept in the browser for the demo. In Phase 2 this becomes a Supabase Storage path. */
-  previewDataUrl?: string;
-}
 
 export interface Payment {
   method: PaymentMethod;
   status: PaymentStatus;
   amount: number;
-  receipt?: PaymentReceipt;
   /** Gateway reference (Paystack/Flutterwave) in a later phase */
   reference?: string;
   verifiedAt?: string;

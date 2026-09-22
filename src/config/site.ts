@@ -19,12 +19,6 @@ export const site = {
       (env.VITE_CONTACT_TIKTOK as string) ||
       "https://www.tiktok.com/@ashake.alase?_r=1&_t=ZS-99uuWweZY1Q",
   },
-  /** Shown on the payment page. Real values come from env, never from source. */
-  bank: {
-    name: (env.VITE_BANK_NAME as string) || "Bank name",
-    accountName: (env.VITE_BANK_ACCOUNT_NAME as string) || "Account name",
-    accountNumber: (env.VITE_BANK_ACCOUNT_NUMBER as string) || "0000000000",
-  },
 } as const;
 
 export const navLinks = [
@@ -33,7 +27,3 @@ export const navLinks = [
   { label: "Track Order", to: "/track" },
   { label: "Contact", to: "/contact" },
 ] as const;
-
-/** Receipt upload limits */
-export const RECEIPT_MAX_BYTES = 5 * 1024 * 1024;
-export const RECEIPT_ACCEPT = "image/png,image/jpeg,image/webp,application/pdf";

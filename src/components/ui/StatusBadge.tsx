@@ -16,6 +16,7 @@ const paymentStyles: Record<PaymentStatus, string> = {
   awaiting_verification: "bg-warn-bg text-warn",
   verified: "bg-ok-bg text-ok",
   rejected: "bg-bad-bg text-bad",
+  paid: "bg-ok-bg text-ok",
 };
 const base =
   "inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold";

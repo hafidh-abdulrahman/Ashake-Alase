@@ -257,3 +257,15 @@ export async function updateOrderStatus(
   if (error) throw error;
   return data ? toOrder(data as OrderRow, await getItems(id)) : null;
 }
+
+export async function confirmOrderDelivery(id: string): Promise<Order | null> {
+  const { data, error } = await client()
+    .from("orders")
+    .update({ status: "delivered", updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("status", "out_for_delivery")
+    .select("*")
+    .maybeSingle();
+  if (error) throw error;
+  return data ? toOrder(data as OrderRow, await getItems(id)) : null;
+}

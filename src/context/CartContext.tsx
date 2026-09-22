@@ -45,14 +45,12 @@ interface CartValue {
   draft: CheckoutDraft;
   updateDraft: (patch: Partial<CheckoutDraft>) => void;
   areas: DeliveryArea[];
+  areasLoading: boolean;
+  areasError: string | null;
   selectedArea: DeliveryArea | null;
   /** null until the customer picks a delivery area */
   deliveryFee: number | null;
   total: number;
-
-  /** Receipt file lives in memory only (a File cannot be persisted). */
-  receiptFile: File | null;
-  setReceiptFile: (file: File | null) => void;
 }
 
 const CartContext = createContext<CartValue | null>(null);
@@ -75,17 +73,31 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }));
   const [products, setProducts] = useState<Product[]>([]);
   const [areas, setAreas] = useState<DeliveryArea[]>([]);
+  const [areasLoading, setAreasLoading] = useState(true);
+  const [areasError, setAreasError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
-  const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([listProducts(), listDeliveryAreas()]).then(([p, a]) => {
-      if (cancelled) return;
-      setProducts(p);
-      setAreas(a);
-      setReady(true);
-    });
+    setAreasLoading(true);
+    setAreasError(null);
+    Promise.allSettled([listProducts(), listDeliveryAreas()]).then(
+      ([productsResult, areasResult]) => {
+        if (cancelled) return;
+        if (productsResult.status === "fulfilled")
+          setProducts(productsResult.value);
+        if (areasResult.status === "fulfilled") {
+          setAreas(areasResult.value);
+        } else {
+          setAreas([]);
+          setAreasError(
+            "Delivery areas could not be loaded. Please refresh and try again.",
+          );
+        }
+        setAreasLoading(false);
+        setReady(true);
+      },
+    );
     return () => {
       cancelled = true;
     };
@@ -153,7 +165,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const clear = useCallback(() => {
     setRaw([]);
     setDraft(emptyDraft);
-    setReceiptFile(null);
   }, []);
 
   const updateDraft = useCallback(
@@ -179,11 +190,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     draft,
     updateDraft,
     areas,
+    areasLoading,
+    areasError,
     selectedArea,
     deliveryFee,
     total,
-    receiptFile,
-    setReceiptFile,
   };
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

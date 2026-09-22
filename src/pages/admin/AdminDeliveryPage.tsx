@@ -19,27 +19,54 @@ const blank = (): DeliveryArea => ({
 });
 
 export default function AdminDeliveryPage() {
-  const { data: areas, loading, reload } = useAllDeliveryAreas();
+  const { data: areas, loading, error, reload } = useAllDeliveryAreas();
   const [editing, setEditing] = useState<DeliveryArea | null>(null);
   const [busy, setBusy] = useState(false);
+  const [operationError, setOperationError] = useState<string | null>(null);
 
-  if (loading || !areas) return <LoadingBlock label="Loading delivery areas" />;
+  if (loading) return <LoadingBlock label="Loading delivery areas" />;
+  if (error || !areas) {
+    return (
+      <div className="rounded-3xl border border-bad/30 bg-bad-bg p-6 text-bad">
+        <p>{error ?? "Delivery areas could not be loaded."}</p>
+        <Button className="mt-4" onClick={reload}>
+          Try again
+        </Button>
+      </div>
+    );
+  }
 
   const save = async () => {
     if (!editing?.name.trim() || editing.fee < 0) return;
     setBusy(true);
-    await saveDeliveryArea({ ...editing, name: editing.name.trim() });
-    setBusy(false);
-    setEditing(null);
-    reload();
+    setOperationError(null);
+    try {
+      await saveDeliveryArea({ ...editing, name: editing.name.trim() });
+      setEditing(null);
+      reload();
+    } catch {
+      setOperationError(
+        "The delivery area could not be saved. Please try again.",
+      );
+    } finally {
+      setBusy(false);
+    }
   };
 
   const remove = async (area: DeliveryArea) => {
     if (!window.confirm(`Remove ${area.name}?`)) return;
     setBusy(true);
-    await removeDeliveryArea(area.id);
-    setBusy(false);
-    reload();
+    setOperationError(null);
+    try {
+      await removeDeliveryArea(area.id);
+      reload();
+    } catch {
+      setOperationError(
+        "The delivery area could not be removed. Please try again.",
+      );
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -96,7 +123,14 @@ export default function AdminDeliveryPage() {
         </div>
       )}
 
+      {operationError && <p className="mt-4 text-bad">{operationError}</p>}
+
       <div className="mt-8 divide-y divide-line overflow-hidden rounded-3xl border border-line bg-paper">
+        {areas.length === 0 && (
+          <p className="p-8 text-center text-ink-soft">
+            No delivery areas have been created yet.
+          </p>
+        )}
         {areas.map((area) => (
           <div
             key={area.id}

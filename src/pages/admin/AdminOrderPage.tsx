@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ChevronLeft, FileText, ImageOff } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { useOrder } from "@/hooks/useData";
 import { Button } from "@/components/ui/Button";
 import { EmptyState, LoadingBlock } from "@/components/ui/PageState";
@@ -11,8 +11,8 @@ import {
 import { OrderTracker } from "@/components/order/OrderTracker";
 import { OrderTotals } from "@/components/order/OrderTotals";
 import { SummaryLines } from "@/components/order/SummaryLines";
-import { nextStatus, orderStatusLabel, previousStatus } from "@/lib/orderMeta";
-import { formatDateTime, formatFileSize, formatPlainDate } from "@/lib/format";
+import { orderNextAction, orderStatusLabel } from "@/lib/orderMeta";
+import { formatDateTime, formatPlainDate } from "@/lib/format";
 import { updateOrderStatus } from "@/services/orderService";
 import type { Order, OrderStatus } from "@/types";
 
@@ -48,8 +48,18 @@ function Row({
 
 export default function AdminOrderPage() {
   const { orderId } = useParams();
-  const { data: order, loading, setData } = useOrder(orderId);
+  const { data: order, loading, setData, reload } = useOrder(orderId);
   const [busy, setBusy] = useState(false);
+  const [feedback, setFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!order) return;
+    const timer = window.setInterval(reload, 15000);
+    return () => window.clearInterval(timer);
+  }, [order, reload]);
 
   if (loading) return <LoadingBlock label="Loading order" />;
   if (!order)
@@ -62,19 +72,42 @@ export default function AdminOrderPage() {
       />
     );
 
-  const run = async (fn: () => Promise<Order | null>) => {
+  const run = async (
+    fn: () => Promise<Order | null>,
+    successMessage: string,
+  ) => {
     setBusy(true);
-    const updated = await fn();
-    if (updated) setData(updated);
-    setBusy(false);
+    setFeedback(null);
+    try {
+      const updated = await fn();
+      if (updated) {
+        setData(updated);
+        setFeedback({ type: "success", message: successMessage });
+      } else {
+        setFeedback({
+          type: "error",
+          message:
+            "The order could not be updated. Please refresh and try again.",
+        });
+      }
+    } catch {
+      setFeedback({
+        type: "error",
+        message: "The order could not be updated. Please try again.",
+      });
+    } finally {
+      setBusy(false);
+    }
   };
-  const setStatus = (s: OrderStatus) =>
-    run(() => updateOrderStatus(order.id, s));
-
-  const next = nextStatus(order.status);
-  const prev = previousStatus(order.status);
-  const { receipt } = order.payment;
-
+  const action = orderNextAction[order.status];
+  const advance = () => {
+    if (!action.nextStatus || busy) return;
+    if (action.confirmation && !window.confirm(action.confirmation)) return;
+    run(
+      () => updateOrderStatus(order.id, action.nextStatus as OrderStatus),
+      `Order marked ${orderStatusLabel[action.nextStatus]}.`,
+    );
+  };
   return (
     <>
       <Link
@@ -94,32 +127,28 @@ export default function AdminOrderPage() {
 
       <div className="mt-8 rounded-3xl border border-line bg-paper p-6">
         <h2 className="mb-6 text-xl font-bold">Order status</h2>
-        <OrderTracker
-          status={order.status}
-          onSelect={setStatus}
-          disabled={busy}
-        />
-        <div className="mt-8 flex flex-wrap gap-3">
-          {next && (
-            <Button loading={busy} onClick={() => setStatus(next)}>
-              {`Mark as ${orderStatusLabel[next]}`}
-            </Button>
-          )}
-          {prev && (
+        <OrderTracker status={order.status} />
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+          {action.nextStatus ? (
             <Button
-              variant="outline"
-              disabled={busy}
-              onClick={() => setStatus(prev)}
+              loading={busy}
+              onClick={advance}
+              className="w-full sm:w-auto"
             >
-              Move back to {orderStatusLabel[prev]}
+              {action.label}
             </Button>
-          )}
-          {!next && (
-            <p className="self-center font-semibold text-ok">
-              This order is complete.
-            </p>
+          ) : (
+            <p className="font-semibold text-ok">{action.label}</p>
           )}
         </div>
+        {feedback && (
+          <p
+            role="status"
+            className={`mt-4 text-sm font-semibold ${feedback.type === "success" ? "text-ok" : "text-bad"}`}
+          >
+            {feedback.message}
+          </p>
+        )}
       </div>
 
       <div className="mt-6 grid items-start gap-6 lg:grid-cols-2">
@@ -173,40 +202,7 @@ export default function AdminOrderPage() {
         <Card title="Payment">
           <div className="flex flex-wrap items-center gap-3">
             <PaymentStatusBadge status={order.payment.status} />
-            <span className="text-sm text-ink-soft">Bank transfer</span>
-          </div>
-
-          <div className="mt-5">
-            <p className="mb-2 text-sm text-ink-soft">Payment receipt</p>
-            {receipt?.previewDataUrl ? (
-              <a href={receipt.previewDataUrl} target="_blank" rel="noreferrer">
-                <img
-                  src={receipt.previewDataUrl}
-                  alt="Payment receipt uploaded by the customer"
-                  className="max-h-72 rounded-2xl border border-line object-contain"
-                />
-              </a>
-            ) : (
-              <div className="flex items-center gap-4 rounded-2xl border border-dashed border-ink/30 bg-surface p-4">
-                <span className="grid size-14 shrink-0 place-items-center rounded-xl bg-surface-alt">
-                  {receipt?.fileType === "application/pdf" ? (
-                    <FileText className="size-6" aria-hidden />
-                  ) : (
-                    <ImageOff className="size-6" aria-hidden />
-                  )}
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate font-semibold">
-                    {receipt ? receipt.fileName : "No receipt uploaded"}
-                  </p>
-                  <p className="text-sm text-ink-soft">
-                    {receipt
-                      ? `${formatFileSize(receipt.fileSize)}. The preview appears here once receipts are stored in Supabase.`
-                      : "The customer has not uploaded a receipt."}
-                  </p>
-                </div>
-              </div>
-            )}
+            <span className="text-sm text-ink-soft">Secure online payment</span>
           </div>
 
           {order.payment.verifiedAt && (
