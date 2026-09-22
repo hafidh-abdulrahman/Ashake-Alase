@@ -90,7 +90,7 @@ export default function MenuPage() {
         </div>
       )}
       {!loading && products && products.length > 0 && (
-        <div className="container-page mt-10 grid gap-5 sm:grid-cols-2 lg:mt-16 lg:grid-cols-3 lg:gap-7">
+        <div className="container-page mt-8 grid grid-cols-2 gap-3 max-[380px]:grid-cols-1 sm:mt-10 sm:gap-5 lg:mt-16 lg:grid-cols-3 lg:gap-7">
           {products.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}

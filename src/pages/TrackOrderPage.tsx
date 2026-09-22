@@ -51,7 +51,10 @@ export default function TrackOrderPage() {
     setConfirmingDelivery(true);
     setDeliveryFeedback(null);
     try {
-      const updated = await confirmOrderDelivery(order.id);
+      const updated = await confirmOrderDelivery(
+        order.orderNumber,
+        lookupPhone ?? phone,
+      );
       if (!updated) throw new Error("Order update returned no order.");
       setData(updated);
       setDeliveryFeedback({
@@ -151,7 +154,9 @@ export default function TrackOrderPage() {
                   </Button>
                   {deliveryFeedback && (
                     <p
-                      role={deliveryFeedback.type === "error" ? "alert" : "status"}
+                      role={
+                        deliveryFeedback.type === "error" ? "alert" : "status"
+                      }
                       className={`mt-3 text-sm font-semibold ${deliveryFeedback.type === "success" ? "text-ok" : "text-warn"}`}
                     >
                       {deliveryFeedback.message}

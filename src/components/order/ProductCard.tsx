@@ -20,37 +20,39 @@ export function ProductCard({ product: p }: { product: Product }) {
             src={p.image}
             alt={p.name}
             placeholder={p.placeholder}
-            className="aspect-[16/10] transition-transform duration-500 group-hover:scale-105"
+            className="aspect-video transition-transform duration-500 group-hover:scale-105"
           />
           {p.campaign && (
-            <span className="eyebrow absolute left-3 top-3 rounded-full bg-accent px-3 py-1.5 text-ink shadow-lift">
+            <span className="eyebrow absolute left-2 top-2 rounded-full bg-accent px-2 py-1 text-ink shadow-lift lg:left-3 lg:top-3 lg:px-3 lg:py-1.5">
               {p.campaign.label}
             </span>
           )}
         </div>
-        <div className="flex items-start justify-between gap-3 p-4 lg:p-5">
+        <div className="flex items-start justify-between gap-2 p-3 lg:gap-3 lg:p-5">
           <div>
-            <h3 className="text-[1.35rem] font-bold group-hover:text-primary">
+            <h3 className="text-[1.05rem] font-bold leading-tight group-hover:text-primary lg:text-[1.35rem]">
               {p.name}
             </h3>
-            <p className="mt-1 text-ink-soft">{p.summary}</p>
-            <p className="mt-2 text-sm font-medium text-ink-soft">
+            <p className="mt-1 line-clamp-2 text-xs leading-snug text-ink-soft lg:text-base lg:leading-normal">
+              {p.summary}
+            </p>
+            <p className="mt-1 text-[0.7rem] font-medium leading-tight text-ink-soft lg:mt-2 lg:text-sm lg:leading-normal">
               {availabilityText(p)}
             </p>
           </div>
-          <p className="font-display text-xl font-extrabold tabular-nums">
+          <p className="font-display text-base font-extrabold leading-tight tabular-nums lg:text-xl">
             {formatNaira(p.price)}
           </p>
         </div>
       </RouterLink>
-      <div className="flex items-center justify-between border-t border-line/70 px-4 py-2.5 text-sm font-bold text-primary lg:px-5">
+      <div className="flex items-center justify-between border-t border-line/70 px-3 py-2 text-xs font-bold text-primary lg:px-5 lg:py-2.5 lg:text-sm">
         <RouterLink
           to={`/menu/${p.id}`}
-          className="inline-flex items-center gap-2"
+          className="inline-flex items-center gap-1.5 lg:gap-2"
         >
           <span>View this plate</span>
           <ArrowUpRight
-            className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+            className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 lg:size-4"
             aria-hidden
           />
         </RouterLink>
@@ -62,7 +64,7 @@ export function ProductCard({ product: p }: { product: Product }) {
           onClick={() => {
             setAddError(!addItem(p.id, 1));
           }}
-          className="grid size-8 place-items-center rounded-full bg-primary text-white transition-colors hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-40"
+          className="grid size-8 place-items-center rounded-full bg-primary text-white transition-colors hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-40 lg:size-8"
         >
           <Plus className="size-4" aria-hidden />
         </button>
@@ -70,7 +72,7 @@ export function ProductCard({ product: p }: { product: Product }) {
       {addError && (
         <p
           role="alert"
-          className="px-4 pb-3 text-xs font-medium text-bad lg:px-5"
+          className="px-3 pb-3 text-xs font-medium text-bad lg:px-5"
         >
           Unable to add this item right now. Please try again.
         </p>

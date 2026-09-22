@@ -34,6 +34,28 @@ interface OrderItemRow {
   created_at: string;
 }
 
+interface CustomerOrderApiResponse {
+  orderNumber: string;
+  customerName: string;
+  status: string;
+  paymentStatus: string;
+  subtotal: number;
+  deliveryFee: number;
+  total: number;
+  delivery: {
+    areaName: string;
+    address: string;
+    preferredDate: string;
+    notes: string;
+  };
+  createdAt: string;
+  items: Array<{
+    name: string;
+    quantity: number;
+    unitPrice: number;
+  }>;
+}
+
 const client = () => {
   if (!supabase) throw new Error("Supabase is not configured.");
   return supabase;
@@ -98,6 +120,32 @@ const toOrder = (row: OrderRow, itemRows: OrderItemRow[]): Order => ({
     amount: toNumber(row.total_amount),
   },
   createdAt: row.created_at,
+});
+
+const fromCustomerOrderResponse = (
+  response: CustomerOrderApiResponse,
+  phone: string,
+): Order => ({
+  id: "",
+  orderNumber: response.orderNumber,
+  customer: { fullName: response.customerName, phone },
+  delivery: { areaId: "", ...response.delivery },
+  items: response.items.map((item, index) => ({
+    productId: `${response.orderNumber}-${index}`,
+    name: item.name,
+    quantity: item.quantity,
+    unitPrice: item.unitPrice,
+  })),
+  subtotal: response.subtotal,
+  deliveryFee: response.deliveryFee,
+  total: response.total,
+  status: response.status as OrderStatus,
+  payment: {
+    method: "bank_transfer",
+    status: response.paymentStatus as PaymentStatus,
+    amount: response.total,
+  },
+  createdAt: response.createdAt,
 });
 
 const getItems = async (orderId: string) => {
@@ -248,11 +296,14 @@ export async function getOrderForCustomer(
   orderNumber: string,
   phone: string,
 ): Promise<Order | null> {
-  const order = await getOrderByNumber(orderNumber);
-  if (!order) return null;
-  return order.customer.phone.replace(/\D/g, "") === phone.replace(/\D/g, "")
-    ? order
-    : null;
+  const response = await fetch("/api/orders/track", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ orderNumber, phone }),
+  });
+  if (!response.ok) return null;
+  const result = (await response.json()) as CustomerOrderApiResponse;
+  return fromCustomerOrderResponse(result, phone);
 }
 
 export async function updateOrderStatus(
@@ -269,14 +320,16 @@ export async function updateOrderStatus(
   return data ? toOrder(data as OrderRow, await getItems(id)) : null;
 }
 
-export async function confirmOrderDelivery(id: string): Promise<Order | null> {
-  const { data, error } = await client()
-    .from("orders")
-    .update({ status: "delivered", updated_at: new Date().toISOString() })
-    .eq("id", id)
-    .eq("status", "out_for_delivery")
-    .select("*")
-    .maybeSingle();
-  if (error) throw error;
-  return data ? toOrder(data as OrderRow, await getItems(id)) : null;
+export async function confirmOrderDelivery(
+  orderNumber: string,
+  phone: string,
+): Promise<Order | null> {
+  const response = await fetch("/api/orders/confirm-delivery", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ orderNumber, phone }),
+  });
+  if (!response.ok) return null;
+  const result = (await response.json()) as CustomerOrderApiResponse;
+  return fromCustomerOrderResponse(result, phone);
 }
