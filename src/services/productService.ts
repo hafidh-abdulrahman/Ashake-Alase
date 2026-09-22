@@ -1,4 +1,5 @@
 import type { Product, ProductCategory } from "@/types";
+import { mockProducts } from "@/data/mock/products";
 import { supabase } from "@/lib/supabase";
 
 interface ProductRow {
@@ -15,6 +16,25 @@ interface ProductRow {
 }
 
 const PRODUCT_COLUMNS = "*";
+const PRODUCT_READ_TIMEOUT_MS = 8000;
+
+const mockListProducts = (options: ListProductsOptions = {}) =>
+  mockProducts.filter(
+    (product) =>
+      product.isActive &&
+      (!options.category || product.category === options.category),
+  );
+
+const withReadTimeout = async <T>(request: PromiseLike<T>): Promise<T> =>
+  Promise.race([
+    Promise.resolve(request),
+    new Promise<T>((_, reject) =>
+      window.setTimeout(
+        () => reject(new Error("Product request timed out.")),
+        PRODUCT_READ_TIMEOUT_MS,
+      ),
+    ),
+  ]);
 
 const client = () => {
   if (!supabase) {
@@ -64,47 +84,97 @@ export interface ListProductsOptions {
 export async function listProducts(
   options: ListProductsOptions = {},
 ): Promise<Product[]> {
-  let query = client()
-    .from("products")
-    .select(PRODUCT_COLUMNS)
-    .order("created_at", { ascending: false });
-  if (!options.includeInactive) query = query.eq("is_available", true);
-  if (options.category) query = query.eq("category", options.category);
-  const { data, error } = await query;
-  if (error) throw error;
-  return (data as ProductRow[]).map(toProduct);
+  if (!supabase) {
+    return mockListProducts(options);
+  }
+
+  try {
+    let query = client()
+      .from("products")
+      .select(PRODUCT_COLUMNS)
+      .order("created_at", { ascending: false });
+    if (!options.includeInactive) query = query.eq("is_available", true);
+    if (options.category) query = query.eq("category", options.category);
+    const { data, error } = await withReadTimeout(query);
+    if (error) throw error;
+    return (data as ProductRow[]).map(toProduct);
+  } catch {
+    return mockListProducts(options);
+  }
 }
 
 export async function getProduct(id: string): Promise<Product | null> {
-  const { data, error } = await client()
-    .from("products")
-    .select(PRODUCT_COLUMNS)
-    .eq("id", id)
-    .eq("is_available", true)
-    .maybeSingle();
-  if (error) throw error;
-  return data ? toProduct(data as ProductRow) : null;
+  if (!supabase) {
+    return (
+      mockProducts.find((product) => product.id === id && product.isActive) ??
+      null
+    );
+  }
+
+  try {
+    const { data, error } = await withReadTimeout(
+      client()
+        .from("products")
+        .select(PRODUCT_COLUMNS)
+        .eq("id", id)
+        .eq("is_available", true)
+        .maybeSingle(),
+    );
+    if (error) throw error;
+    return data ? toProduct(data as ProductRow) : null;
+  } catch {
+    return (
+      mockProducts.find((product) => product.id === id && product.isActive) ??
+      null
+    );
+  }
 }
 
 export async function getFeaturedProduct(): Promise<Product | null> {
-  const { data, error } = await client()
-    .from("products")
-    .select(PRODUCT_COLUMNS)
-    .eq("is_available", true)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (error) throw error;
-  return data ? toProduct(data as ProductRow) : null;
+  if (!supabase) {
+    return (
+      mockProducts.find((product) => product.featured && product.isActive) ??
+      null
+    );
+  }
+
+  try {
+    const { data, error } = await withReadTimeout(
+      client()
+        .from("products")
+        .select(PRODUCT_COLUMNS)
+        .eq("is_available", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    );
+    if (error) throw error;
+    return data ? toProduct(data as ProductRow) : null;
+  } catch {
+    return (
+      mockProducts.find((product) => product.featured && product.isActive) ??
+      null
+    );
+  }
 }
 
 export async function listAllProducts(): Promise<Product[]> {
-  const { data, error } = await client()
-    .from("products")
-    .select(PRODUCT_COLUMNS)
-    .order("created_at", { ascending: false });
-  if (error) throw error;
-  return (data as ProductRow[]).map(toProduct);
+  if (!supabase) {
+    return [...mockProducts];
+  }
+
+  try {
+    const { data, error } = await withReadTimeout(
+      client()
+        .from("products")
+        .select(PRODUCT_COLUMNS)
+        .order("created_at", { ascending: false }),
+    );
+    if (error) throw error;
+    return (data as ProductRow[]).map(toProduct);
+  } catch {
+    return [...mockProducts];
+  }
 }
 
 export async function saveProduct(product: Product): Promise<Product> {

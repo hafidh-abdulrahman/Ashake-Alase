@@ -7,7 +7,7 @@ import type { ProductCategory } from "@/types";
  */
 
 export const heroContent = {
-  headline: ["Good food.", "Big moments."],
+  headline: ["Premium meals all day everyday"],
   supporting:
     "Fresh, flavour-packed meals and special packages, made for every craving and occasion.",
   /** Optional looping video. Leave empty to use the image. Example: '/videos/hero.mp4' */

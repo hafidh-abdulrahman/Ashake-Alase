@@ -22,9 +22,9 @@ export function Hero() {
               height={68}
               className="size-14 object-contain md:size-16"
             />
-            <p className="eyebrow text-primary">Ashake Alase / Lagos kitchen</p>
+            <p className="eyebrow text-primary">Ashake Alase</p>
           </div>
-          <h1 className="max-w-lg font-serif text-[clamp(3rem,6.5vw,6.25rem)] leading-[0.88] tracking-[-0.055em] text-ink">
+          <h1 className="max-w-lg font-serif text-[clamp(3rem,5.5vw,5.5rem)] leading-[0.88] tracking-[-0.055em] text-ink">
             {heroContent.headline.map((line, i) => (
               <span
                 key={line}
