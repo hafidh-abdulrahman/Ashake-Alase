@@ -53,6 +53,7 @@ export default function ContactPage() {
     subject: "",
     message: "",
   });
+  const [gmailUrl, setGmailUrl] = useState<string | null>(null);
 
   const updateForm = (field: keyof typeof form, value: string) =>
     setForm((current) => ({ ...current, [field]: value }));
@@ -68,8 +69,13 @@ export default function ContactPage() {
       "Message:",
       form.message.trim(),
     ].join("\n");
-    const params = new URLSearchParams({ subject: form.subject.trim(), body });
-    window.location.href = `mailto:${email}?${params.toString()}`;
+    const gmailUrl =
+      "https://mail.google.com/mail/?view=cm&fs=1" +
+      `&to=${encodeURIComponent(email)}` +
+      `&su=${encodeURIComponent(form.subject.trim())}` +
+      `&body=${encodeURIComponent(body)}`;
+    const gmailWindow = window.open(gmailUrl, "_blank", "noopener,noreferrer");
+    if (!gmailWindow) setGmailUrl(gmailUrl);
   };
 
   return (
@@ -89,10 +95,7 @@ export default function ContactPage() {
         <div className="rounded-3xl border border-line/80 bg-white p-5 shadow-[0_18px_45px_-34px_rgba(36,25,22,0.55)] sm:p-8">
           <h2 className="text-2xl text-ink">Contact Information</h2>
           <div className="mt-6 space-y-4">
-            <a
-              href={`mailto:${email}`}
-              className="group flex items-start gap-4 rounded-2xl p-3 transition-colors hover:bg-primary/5 sm:p-4"
-            >
+            <div className="group flex items-start gap-4 rounded-2xl p-3 transition-colors hover:bg-primary/5 sm:p-4">
               <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
                 <Mail className="size-6" aria-hidden />
               </span>
@@ -104,7 +107,7 @@ export default function ContactPage() {
                   {email}
                 </span>
               </span>
-            </a>
+            </div>
 
             <a
               href={`tel:${phone}`}
@@ -261,6 +264,16 @@ export default function ContactPage() {
               <Send className="size-5" aria-hidden />
               Send Message
             </button>
+            {gmailUrl && (
+              <a
+                href={gmailUrl}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="inline-flex text-sm font-semibold text-primary underline-offset-4 hover:underline"
+              >
+                Open Gmail
+              </a>
+            )}
           </form>
         </div>
       </section>
