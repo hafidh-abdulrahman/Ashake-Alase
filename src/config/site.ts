@@ -10,8 +10,10 @@ export const site = {
   tagline: "Good food, made for every occasion",
   logo: "/logo.png",
   contact: {
-    phone: (env.VITE_CONTACT_PHONE as string) || "",
-    email: (env.VITE_CONTACT_EMAIL as string) || "",
+    phone: "08125037987",
+    email: "gbemmysolaniyi@gmail.com",
+    address:
+      "Block 316 jakande estate isolo opposite ifelodun mosque lagos state",
     instagram:
       (env.VITE_CONTACT_INSTAGRAM as string) ||
       "https://www.instagram.com/ashake_alase/",

@@ -1,221 +1,243 @@
-import { Mail, MapPin, MessageSquareText, Phone } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { Mail, MapPin, Phone, Send } from "lucide-react";
 import { site } from "@/config/site";
 
+function InstagramIcon({ className = "size-6" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      className={className}
+    >
+      <rect
+        x="3.5"
+        y="3.5"
+        width="17"
+        height="17"
+        rx="5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="17.2" cy="6.8" r="1.2" fill="currentColor" />
+    </svg>
+  );
+}
+
+function TikTokIcon({ className = "size-5" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 15.68a6.34 6.34 0 0 0 11.14 4.15c.08-.12.15-.25.21-.39V10.2a8.3 8.3 0 0 0 3.24.66Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
 export default function ContactPage() {
-  const phone = site.contact.phone || "+234 800 000 0000";
-  const email = site.contact.email || "hello@ashakealase.com";
-  const locationLabel = "Lagos, Nigeria";
-  const locationHref = "https://maps.google.com/?q=Lagos+Nigeria";
+  const { phone, email, address, instagram, tiktok } = site.contact;
+  const locationHref = `https://maps.google.com/?q=${encodeURIComponent(address)}`;
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: "",
+  });
+
+  const updateForm = (field: keyof typeof form, value: string) =>
+    setForm((current) => ({ ...current, [field]: value }));
+
+  const submitContactForm = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const body = [
+      `Customer Name: ${form.name.trim()}`,
+      `Customer Email: ${form.email.trim()}`,
+      `Customer Phone: ${form.phone.trim() || "Not provided"}`,
+      `Subject: ${form.subject.trim()}`,
+      "",
+      "Message:",
+      form.message.trim(),
+    ].join("\n");
+    const params = new URLSearchParams({ subject: form.subject.trim(), body });
+    window.location.href = `mailto:${email}?${params.toString()}`;
+  };
 
   return (
-    <div className="container-page pb-28 pt-6 sm:pb-32 lg:pb-32 lg:pt-10">
-      <section className="rounded-[2rem] bg-surface p-5 shadow-[0_18px_40px_rgba(36,25,22,0.06)] sm:p-8 lg:p-10">
-        <div className="max-w-2xl">
-          <p className="eyebrow text-primary">Contact</p>
-          <h1 className="mt-4 text-[clamp(2.5rem,5vw,4.25rem)] text-ink">
-            Get in Touch
-          </h1>
-          <p className="mt-4 text-base leading-relaxed text-ink-soft md:text-lg">
-            Have a question about your order, delivery, or our food? We’re happy
-            to help.
-          </p>
-        </div>
+    <div className="container-page max-w-[80rem] pb-20 pt-10 sm:pb-24 lg:pt-16">
+      <section className="mx-auto max-w-3xl text-center">
+        <h1 className="text-4xl text-ink md:text-5xl">
+          Get in <span className="text-primary">Touch</span>
+        </h1>
+        <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-ink-soft md:text-lg">
+          Have a question, feedback, or need help with an order? We&apos;re here
+          for you. Drop us a line and we&apos;ll get back to you as soon as
+          possible.
+        </p>
       </section>
 
-      <section className="mt-8 grid gap-4 md:grid-cols-3">
-        <div className="rounded-[1.5rem] border border-line bg-white p-5 shadow-[0_12px_30px_rgba(36,25,22,0.04)]">
-          <div className="grid size-12 place-items-center rounded-full bg-primary text-white">
-            <Phone className="size-5" aria-hidden />
-          </div>
-          <h2 className="mt-5 text-xl font-semibold text-ink">Call Us</h2>
-          <p className="mt-3 text-base text-ink-soft">
-            Speak with our team for quick orders and support.
-          </p>
-          <a
-            href={`tel:${phone}`}
-            className="mt-5 inline-flex items-center gap-2 text-base font-semibold text-primary underline-offset-4 hover:underline"
-          >
-            {phone}
-          </a>
-        </div>
-
-        <div className="rounded-[1.5rem] border border-line bg-white p-5 shadow-[0_12px_30px_rgba(36,25,22,0.04)]">
-          <div className="grid size-12 place-items-center rounded-full bg-accent text-ink">
-            <Mail className="size-5" aria-hidden />
-          </div>
-          <h2 className="mt-5 text-xl font-semibold text-ink">Email Us</h2>
-          <p className="mt-3 text-base text-ink-soft">
-            For custom orders, enquiries, and event requests.
-          </p>
-          <a
-            href={`mailto:${email}`}
-            className="mt-5 inline-flex items-center gap-2 text-base font-semibold text-primary underline-offset-4 hover:underline"
-          >
-            {email}
-          </a>
-        </div>
-
-        <div className="rounded-[1.5rem] border border-line bg-white p-5 shadow-[0_12px_30px_rgba(36,25,22,0.04)]">
-          <div className="grid size-12 place-items-center rounded-full bg-surface-alt text-ink">
-            <MapPin className="size-5" aria-hidden />
-          </div>
-          <h2 className="mt-5 text-xl font-semibold text-ink">Find Us</h2>
-          <p className="mt-3 text-base text-ink-soft">
-            Visit us in Lagos and enjoy fresh meals made for your moment.
-          </p>
-          <a
-            href={locationHref}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="mt-5 inline-flex items-center gap-2 text-base font-semibold text-primary underline-offset-4 hover:underline"
-          >
-            {locationLabel}
-          </a>
-        </div>
-      </section>
-
-      <section className="mt-12 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="rounded-[1.75rem] border border-line bg-surface p-5 shadow-[0_12px_30px_rgba(36,25,22,0.04)] sm:p-6">
-          <h2 className="text-2xl font-semibold text-ink">
-            Contact Information
-          </h2>
-
-          <div className="mt-5 space-y-3">
+      <section className="mt-12 grid gap-8 lg:grid-cols-2 lg:gap-8">
+        <div className="rounded-3xl border border-line/80 bg-white p-5 shadow-[0_18px_45px_-34px_rgba(36,25,22,0.55)] sm:p-8">
+          <h2 className="text-2xl text-ink">Contact Information</h2>
+          <div className="mt-6 space-y-4">
             <a
               href={`mailto:${email}`}
-              className="flex items-center gap-3 rounded-2xl border border-line bg-paper p-3.5 text-ink transition hover:border-primary/50 hover:bg-surface"
+              className="group flex items-start gap-4 rounded-2xl p-3 transition-colors hover:bg-primary/5 sm:p-4"
             >
-              <span className="grid size-10 place-items-center rounded-full bg-primary/10 text-primary">
-                <Mail className="size-4" aria-hidden />
+              <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+                <Mail className="size-6" aria-hidden />
               </span>
-              <span>
-                <span className="block text-sm uppercase tracking-[0.12em] text-ink-soft">
+              <span className="min-w-0 pt-0.5">
+                <span className="block text-base font-bold text-ink">
                   Email Us
                 </span>
-                <span className="mt-1 block font-medium text-ink">{email}</span>
+                <span className="mt-1 block wrap-break-word text-sm text-ink-soft group-hover:text-primary">
+                  {email}
+                </span>
               </span>
             </a>
 
             <a
-              href={`https://wa.me/${phone.replace(/\D/g, "")}`}
-              className="flex items-center gap-3 rounded-2xl border border-line bg-paper p-3.5 text-ink transition hover:border-primary/50 hover:bg-surface"
+              href={`tel:${phone}`}
+              className="group flex items-start gap-4 rounded-2xl p-3 transition-colors hover:bg-primary/5 sm:p-4"
             >
-              <span className="grid size-10 place-items-center rounded-full bg-primary/10 text-primary">
-                <Phone className="size-4" aria-hidden />
+              <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+                <Phone className="size-6" aria-hidden />
               </span>
-              <span>
-                <span className="block text-sm uppercase tracking-[0.12em] text-ink-soft">
-                  WhatsApp
+              <span className="pt-0.5">
+                <span className="block text-base font-bold text-ink">
+                  Phone
                 </span>
-                <span className="mt-1 block font-medium text-ink">{phone}</span>
+                <span className="mt-1 block text-sm text-ink-soft group-hover:text-primary">
+                  {phone}
+                </span>
               </span>
             </a>
 
-            <div className="rounded-2xl border border-line bg-paper p-3.5">
-              <div className="flex items-start gap-3">
-                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
-                  <MapPin className="size-4" aria-hidden />
+            <div className="flex items-start gap-4 rounded-2xl p-3 sm:p-4">
+              <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                <MapPin className="size-6" aria-hidden />
+              </span>
+              <span className="pt-0.5">
+                <span className="block text-base font-bold text-ink">
+                  Our Location
                 </span>
-                <div>
-                  <p className="text-sm uppercase tracking-[0.12em] text-ink-soft">
-                    Our Location
-                  </p>
-                  <p className="mt-1 text-base font-medium text-ink">
-                    {locationLabel}
-                  </p>
-                  <a
-                    href={locationHref}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    className="mt-2 inline-flex text-sm font-semibold text-primary underline-offset-4 hover:underline"
-                  >
-                    Open in Google Maps
-                  </a>
-                </div>
-              </div>
+                <span className="mt-1 block text-sm leading-relaxed text-ink-soft">
+                  {address}
+                </span>
+                <a
+                  href={locationHref}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-primary transition-colors hover:text-primary-dark"
+                >
+                  Open in Google Maps
+                  <MapPin className="size-4" aria-hidden />
+                </a>
+              </span>
             </div>
 
-            <div className="rounded-2xl border border-line bg-paper p-3.5">
-              <p className="text-sm uppercase tracking-[0.12em] text-ink-soft">
-                Follow Us
-              </p>
-              <div className="mt-3 flex items-center gap-3">
-                <a
-                  href={
-                    site.contact.instagram ||
-                    "https://www.instagram.com/ashake_alase/"
-                  }
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="inline-flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary transition hover:bg-primary hover:text-white"
-                  aria-label="Instagram"
-                >
-                  <span className="text-lg">◎</span>
-                </a>
-                <a
-                  href={
-                    site.contact.tiktok ||
-                    "https://www.tiktok.com/@ashake.alase?_r=1&_t=ZS-99uuWweZY1Q"
-                  }
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="inline-flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary transition hover:bg-primary hover:text-white"
-                  aria-label="TikTok"
-                >
-                  <span className="text-base font-bold">♪</span>
-                </a>
+            {(instagram || tiktok) && (
+              <div className="border-t border-line/80 pt-6">
+                <h3 className="text-base font-bold text-ink">Follow Us</h3>
+                <div className="mt-4 flex items-center gap-4">
+                  {instagram && (
+                    <a
+                      href={instagram}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="inline-flex size-14 items-center justify-center rounded-2xl bg-ink/5 text-ink transition-colors hover:bg-primary hover:text-white"
+                      aria-label="Instagram"
+                    >
+                      <InstagramIcon className="size-6" />
+                    </a>
+                  )}
+                  {tiktok && (
+                    <a
+                      href={tiktok}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-ink/5 px-5 font-bold text-ink transition-colors hover:bg-primary hover:text-white"
+                      aria-label="TikTok"
+                    >
+                      <TikTokIcon className="size-5" />
+                      TikTok
+                    </a>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
-        <div className="rounded-[1.9rem] border border-line bg-surface p-4 shadow-[0_22px_50px_rgba(36,25,22,0.08)] sm:p-6 lg:p-7">
-          <h2 className="text-2xl font-semibold text-ink">Send a Message</h2>
-
-          <form className="mt-5 space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
+        <div className="rounded-3xl border border-line/80 bg-white p-5 shadow-[0_18px_45px_-34px_rgba(36,25,22,0.55)] sm:p-8">
+          <h2 className="text-2xl text-ink">Send a Message</h2>
+          <form className="mt-6 space-y-5" onSubmit={submitContactForm}>
+            <div className="grid gap-5 md:grid-cols-2">
               <label className="block text-sm font-medium text-ink">
                 Name
                 <input
                   type="text"
                   placeholder="Your name"
-                  className="mt-2 w-full rounded-xl border border-line bg-paper px-3.5 py-3 text-base text-ink placeholder:text-ink-soft/70 transition duration-200 focus:border-primary focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/10"
+                  value={form.name}
+                  onChange={(event) => updateForm("name", event.target.value)}
+                  required
+                  className="mt-2 h-11 w-full rounded-xl border border-line bg-primary/5 px-3 text-base text-ink placeholder:text-ink-soft/70 transition focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 md:text-sm"
                 />
               </label>
-
               <label className="block text-sm font-medium text-ink">
                 Email
                 <input
                   type="email"
                   placeholder="your.email@example.com"
-                  className="mt-2 w-full rounded-xl border border-line bg-paper px-3.5 py-3 text-base text-ink placeholder:text-ink-soft/70 transition duration-200 focus:border-primary focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/10"
+                  value={form.email}
+                  onChange={(event) => updateForm("email", event.target.value)}
+                  required
+                  className="mt-2 h-11 w-full rounded-xl border border-line bg-primary/5 px-3 text-base text-ink placeholder:text-ink-soft/70 transition focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 md:text-sm"
                 />
               </label>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-5 md:grid-cols-2">
               <label className="block text-sm font-medium text-ink">
-                Phone (Optional)
+                Phone{" "}
+                <span className="font-normal text-ink-soft">(Optional)</span>
                 <input
                   type="tel"
                   placeholder="Your phone number"
-                  className="mt-2 w-full rounded-xl border border-line bg-paper px-3.5 py-3 text-base text-ink placeholder:text-ink-soft/70 transition duration-200 focus:border-primary focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/10"
+                  value={form.phone}
+                  onChange={(event) => updateForm("phone", event.target.value)}
+                  className="mt-2 h-11 w-full rounded-xl border border-line bg-primary/5 px-3 text-base text-ink placeholder:text-ink-soft/70 transition focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 md:text-sm"
                 />
               </label>
-
               <label className="block text-sm font-medium text-ink">
                 Subject
                 <select
-                  defaultValue=""
-                  className="mt-2 w-full rounded-xl border border-line bg-paper px-3.5 py-3 text-base text-ink transition duration-200 focus:border-primary focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/10"
+                  value={form.subject}
+                  onChange={(event) =>
+                    updateForm("subject", event.target.value)
+                  }
+                  required
+                  className="mt-2 h-11 w-full rounded-xl border border-line bg-primary/5 px-3 text-base text-ink transition focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 md:text-sm"
                 >
                   <option value="" disabled>
                     What is this about?
                   </option>
-                  <option>Order enquiry</option>
-                  <option>Delivery enquiry</option>
-                  <option>Food / Package enquiry</option>
-                  <option>General enquiry</option>
+                  <option>General Enquiry</option>
+                  <option>Order Enquiry</option>
+                  <option>Catering / Event</option>
+                  <option>Delivery</option>
+                  <option>Feedback</option>
+                  <option>Other</option>
                 </select>
               </label>
             </div>
@@ -225,15 +247,18 @@ export default function ContactPage() {
               <textarea
                 rows={5}
                 placeholder="How can we help you?"
-                className="mt-2 w-full rounded-xl border border-line bg-paper px-3.5 py-3 text-base text-ink placeholder:text-ink-soft/70 transition duration-200 focus:border-primary focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/10"
+                value={form.message}
+                onChange={(event) => updateForm("message", event.target.value)}
+                required
+                className="mt-2 min-h-[132px] w-full resize-y rounded-xl border border-line bg-primary/5 px-3 py-3 text-base text-ink placeholder:text-ink-soft/70 transition focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 md:text-sm"
               />
             </label>
 
             <button
               type="submit"
-              className="inline-flex w-full items-center justify-center rounded-full bg-primary px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-primary-dark hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-primary/20"
+              className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 text-lg font-bold text-white transition-colors hover:bg-primary-dark focus:outline-none focus:ring-4 focus:ring-primary/20"
             >
-              <MessageSquareText className="mr-2 size-4" aria-hidden />
+              <Send className="size-5" aria-hidden />
               Send Message
             </button>
           </form>

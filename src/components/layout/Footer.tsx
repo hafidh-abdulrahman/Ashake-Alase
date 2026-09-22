@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { AtSign, Mail, Phone } from "lucide-react";
+import { AtSign, Mail, MapPin, Phone } from "lucide-react";
 import { navLinks, site } from "@/config/site";
 
 function InstagramIcon({ className = "size-4" }: { className?: string }) {
@@ -49,8 +49,8 @@ function TikTokIcon({ className = "size-4" }: { className?: string }) {
 }
 
 export function Footer() {
-  const { phone, email, instagram, tiktok } = site.contact;
-  const hasContact = phone || email || instagram || tiktok;
+  const { phone, email, address, instagram, tiktok } = site.contact;
+  const hasContact = phone || email || address || instagram || tiktok;
   return (
     <footer className="bg-ink text-surface">
       <div className="container-page grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr] md:py-16">
@@ -122,6 +122,12 @@ export function Footer() {
                   <a href={`mailto:${email}`} className="hover:underline">
                     {email}
                   </a>
+                </li>
+              )}
+              {address && (
+                <li className="flex items-start gap-2.5">
+                  <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden />
+                  <span>{address}</span>
                 </li>
               )}
               {instagram && (
