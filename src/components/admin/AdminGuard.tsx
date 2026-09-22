@@ -1,11 +1,42 @@
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { LoadingBlock } from "@/components/ui/PageState";
+import { supabase } from "@/lib/supabase";
 
-/**
- * PHASE 2: protect the admin area with Supabase Auth.
- * Suggested approach: read the session with supabase.auth.getSession(), redirect to /admin/login
- * when there is none, and check the user's role (e.g. an `admins` table) before rendering children.
- * Phase 1 has no authentication, so this simply renders its children.
- */
 export function AdminGuard({ children }: { children: ReactNode }) {
-  return <>{children}</>
+  const location = useLocation();
+  const [checking, setChecking] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
+
+  useEffect(() => {
+    if (!supabase) {
+      setChecking(false);
+      return;
+    }
+
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
+      setAuthenticated(Boolean(data.session));
+      setChecking(false);
+    });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      setAuthenticated(Boolean(session));
+      setChecking(false);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  if (checking) return <LoadingBlock label="Checking admin session" />;
+  if (!supabase || !authenticated) {
+    return <Navigate to="/admin/login" replace state={{ from: location }} />;
+  }
+  return <>{children}</>;
 }

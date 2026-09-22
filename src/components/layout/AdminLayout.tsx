@@ -1,10 +1,19 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import { ExternalLink, MapPin, Package } from "lucide-react";
 import { site } from "@/config/site";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { ScrollManager } from "./ScrollManager";
+import { LogOut } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export function AdminLayout() {
+  const navigate = useNavigate();
+
+  const logout = async () => {
+    await supabase?.auth.signOut();
+    navigate("/admin/login", { replace: true });
+  };
+
   return (
     <AdminGuard>
       <div className="min-h-dvh bg-surface">
@@ -45,6 +54,13 @@ export function AdminLayout() {
               >
                 View website <ExternalLink className="size-4" aria-hidden />
               </Link>
+              <button
+                type="button"
+                onClick={logout}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-soft hover:text-ink"
+              >
+                <LogOut className="size-4" aria-hidden /> Logout
+              </button>
             </nav>
           </div>
         </header>

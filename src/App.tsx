@@ -15,6 +15,7 @@ import AdminDashboardPage from "@/pages/admin/AdminDashboardPage";
 import AdminOrderPage from "@/pages/admin/AdminOrderPage";
 import AdminMenuPage from "@/pages/admin/AdminMenuPage";
 import AdminDeliveryPage from "@/pages/admin/AdminDeliveryPage";
+import AdminLoginPage from "@/pages/admin/AdminLoginPage";
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
         <Route path="track" element={<TrackOrderPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
+      <Route path="admin/login" element={<AdminLoginPage />} />
       <Route path="admin" element={<AdminLayout />}>
         <Route index element={<AdminDashboardPage />} />
         <Route path="menu" element={<AdminMenuPage />} />
