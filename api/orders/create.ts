@@ -13,7 +13,6 @@ interface RequestBody {
     preferredDate?: unknown;
     notes?: unknown;
   };
-  areaId?: unknown;
   items?: unknown;
 }
 
@@ -29,13 +28,6 @@ interface ProductRecord {
   stock_quantity: number | null;
   max_per_order: number | null;
   free_delivery: boolean;
-  is_available: boolean;
-}
-
-interface DeliveryAreaRecord {
-  id: string;
-  area_name: string;
-  delivery_fee: number | string;
   is_available: boolean;
 }
 
@@ -63,11 +55,10 @@ const isValidDate = (value: string) => {
 };
 
 const encodeDelivery = (
-  areaName: string,
   address: string,
   preferredDate: string,
   notes: string,
-) => JSON.stringify({ areaName, address, preferredDate, notes });
+) => JSON.stringify({ address, preferredDate, notes });
 
 const getSupabaseRows = async <T>(
   url: string,
@@ -120,7 +111,6 @@ export default async function handler(
 
   const body = (req.body || {}) as RequestBody;
   const draft = body.draft;
-  const areaId = typeof body.areaId === "string" ? body.areaId.trim() : "";
   const items = Array.isArray(body.items) ? body.items : [];
   const fullName =
     typeof draft?.fullName === "string" ? draft.fullName.trim() : "";
@@ -144,7 +134,7 @@ export default async function handler(
     jsonError(res, 400, "A valid customer email is required.");
     return;
   }
-  if (!areaId || address.length < 8 || !isValidDate(preferredDate)) {
+  if (address.length < 8 || !isValidDate(preferredDate)) {
     jsonError(res, 400, "Valid delivery details are required.");
     return;
   }
@@ -189,33 +179,13 @@ export default async function handler(
     );
     productUrl.searchParams.set("is_available", "eq.true");
 
-    const areaUrl = new URL(`${baseUrl}/delivery_areas`);
-    areaUrl.searchParams.set(
-      "select",
-      "id,area_name,delivery_fee,is_available",
+    const products = await getSupabaseRows<ProductRecord>(
+      productUrl.toString(),
+      supabase.serviceRoleKey,
     );
-    areaUrl.searchParams.set("id", `eq.${areaId}`);
-    areaUrl.searchParams.set("is_available", "eq.true");
-    areaUrl.searchParams.set("limit", "1");
-
-    const [products, areas] = await Promise.all([
-      getSupabaseRows<ProductRecord>(
-        productUrl.toString(),
-        supabase.serviceRoleKey,
-      ),
-      getSupabaseRows<DeliveryAreaRecord>(
-        areaUrl.toString(),
-        supabase.serviceRoleKey,
-      ),
-    ]);
     const productsById = new Map(
       products.map((product) => [product.id, product]),
     );
-    const area = areas[0];
-    if (!area) {
-      jsonError(res, 400, "The selected delivery area is unavailable.");
-      return;
-    }
 
     const snapshotItems = normalizedItems.map((item) => {
       const product = productsById.get(item.productId);
@@ -253,12 +223,7 @@ export default async function handler(
       (sum, item) => sum + item.total_price,
       0,
     );
-    const deliveryFee = snapshotItems.every((item) => item.free_delivery)
-      ? 0
-      : Number(area.delivery_fee);
-    if (!Number.isFinite(deliveryFee) || deliveryFee < 0) {
-      throw new Error("The delivery fee is invalid.");
-    }
+    const deliveryFee = 0;
     const total = subtotal + deliveryFee;
     const orderId = randomUUID();
     for (const item of snapshotItems) {
@@ -312,12 +277,7 @@ export default async function handler(
           customer_name: fullName,
           customer_phone: phone,
           customer_email: email,
-          delivery_address: encodeDelivery(
-            area.area_name,
-            address,
-            preferredDate,
-            notes,
-          ),
+          delivery_address: encodeDelivery(address, preferredDate, notes),
           delivery_fee: deliveryFee,
           subtotal,
           total_amount: total,

@@ -142,7 +142,6 @@ export default function ConfirmationPage() {
               <div>
                 <dt className="text-sm text-ink-soft">Address</dt>
                 <dd className="font-semibold">{order.delivery.address}</dd>
-                <dd className="text-ink-soft">{order.delivery.areaName}</dd>
               </div>
               {order.delivery.preferredDate && (
                 <div>

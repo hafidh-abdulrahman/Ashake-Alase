@@ -43,7 +43,6 @@ interface CustomerOrderApiResponse {
   deliveryFee: number;
   total: number;
   delivery: {
-    areaName: string;
     address: string;
     preferredDate: string;
     notes: string;
@@ -63,9 +62,8 @@ const client = () => {
 
 const toNumber = (value: number | string) => Number(value);
 
-const encodeDelivery = (draft: CheckoutDraft, areaName: string) =>
+const encodeDelivery = (draft: CheckoutDraft) =>
   JSON.stringify({
-    areaName,
     address: draft.address.trim(),
     preferredDate: draft.preferredDate,
     notes: draft.notes.trim(),
@@ -76,8 +74,6 @@ const decodeDelivery = (value: string): Order["delivery"] => {
     const parsed = JSON.parse(value) as Partial<Order["delivery"]>;
     if (parsed.address) {
       return {
-        areaId: "",
-        areaName: parsed.areaName || "",
         address: parsed.address,
         preferredDate: parsed.preferredDate || "",
         notes: parsed.notes || "",
@@ -87,8 +83,6 @@ const decodeDelivery = (value: string): Order["delivery"] => {
     // Older or manually entered rows contain a plain address.
   }
   return {
-    areaId: "",
-    areaName: "",
     address: value,
     preferredDate: "",
     notes: "",
@@ -129,7 +123,7 @@ const fromCustomerOrderResponse = (
   id: "",
   orderNumber: response.orderNumber,
   customer: { fullName: response.customerName, phone },
-  delivery: { areaId: "", ...response.delivery },
+  delivery: response.delivery,
   items: response.items.map((item, index) => ({
     productId: `${response.orderNumber}-${index}`,
     name: item.name,
@@ -170,7 +164,6 @@ const getOrderRow = async (column: "id" | "order_number", value: string) => {
 
 export interface CreateOrderInput {
   draft: CheckoutDraft;
-  areaName: string;
   items: OrderItem[];
   deliveryFee: number;
 }
@@ -198,7 +191,6 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       draft: input.draft,
-      areaId: input.draft.areaId,
       items: input.items.map((item) => ({
         productId: item.productId,
         quantity: item.quantity,
@@ -242,7 +234,7 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
       customer_name: input.draft.fullName.trim(),
       customer_phone: input.draft.phone.trim(),
       customer_email: result.customerEmail || input.draft.email.trim(),
-      delivery_address: encodeDelivery(input.draft, input.areaName),
+      delivery_address: encodeDelivery(input.draft),
       delivery_fee: input.deliveryFee,
       subtotal,
       total_amount: totalAmount,

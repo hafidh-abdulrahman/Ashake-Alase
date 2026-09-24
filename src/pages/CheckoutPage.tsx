@@ -2,37 +2,23 @@ import { useState, type FormEvent } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/Button";
-import { SelectField, TextAreaField, TextField } from "@/components/ui/Field";
+import { TextAreaField, TextField } from "@/components/ui/Field";
 import { LoadingBlock } from "@/components/ui/PageState";
 import { CartSummaryCard } from "@/components/order/CartSummaryCard";
 import { CheckoutProgress } from "@/components/order/CheckoutProgress";
 import { validateDraft } from "@/lib/validation";
-import { formatNaira, ymdFromToday } from "@/lib/format";
+import { ymdFromToday } from "@/lib/format";
 import type { CheckoutDraft } from "@/types";
 
 export default function CheckoutPage() {
-  const { lines, ready, draft, updateDraft, areas, areasLoading, areasError } =
-    useCart();
+  const { lines, ready, draft, updateDraft } = useCart();
   const navigate = useNavigate();
   const [submitted, setSubmitted] = useState(false);
 
   if (!ready) return <LoadingBlock />;
   if (lines.length === 0) return <Navigate to="/cart" replace />;
-  if (areasLoading) return <LoadingBlock label="Loading delivery areas" />;
-  if (areasError || areas.length === 0) {
-    return (
-      <div className="container-page pb-20 pt-12 lg:pb-28">
-        <h1 className="text-4xl">Delivery areas unavailable</h1>
-        <p className="mt-3 max-w-xl text-ink-soft">
-          {areasError ??
-            "There are no delivery areas available for checkout right now."}
-        </p>
-      </div>
-    );
-  }
-
   // Errors only appear after the first attempt, then stay in sync as the customer fixes each field
-  const errors = submitted ? validateDraft(draft, areas) : {};
+  const errors = submitted ? validateDraft(draft) : {};
 
   const set = <K extends keyof CheckoutDraft>(
     key: K,
@@ -42,7 +28,7 @@ export default function CheckoutPage() {
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
-    if (Object.keys(validateDraft(draft, areas)).length === 0) {
+    if (Object.keys(validateDraft(draft)).length === 0) {
       navigate("/payment");
       return;
     }
@@ -93,20 +79,6 @@ export default function CheckoutPage() {
             onChange={(e) => set("email", e.target.value)}
             error={errors.email}
           />
-
-          <SelectField
-            label="Delivery area"
-            value={draft.areaId}
-            onChange={(e) => set("areaId", e.target.value)}
-            error={errors.areaId}
-          >
-            <option value="">Choose your area</option>
-            {areas.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name} ({formatNaira(a.fee)})
-              </option>
-            ))}
-          </SelectField>
 
           <TextAreaField
             label="Delivery address"

@@ -13,16 +13,7 @@ import { initializePaystackTransaction } from "@/services/paystackService";
 import type { Order } from "@/types";
 
 export default function PaymentPage() {
-  const {
-    lines,
-    ready,
-    draft,
-    areas,
-    selectedArea,
-    deliveryFee,
-    total,
-    clear,
-  } = useCart();
+  const { lines, ready, draft, deliveryFee, total, clear } = useCart();
   const placing = useRef(false);
   const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -31,7 +22,7 @@ export default function PaymentPage() {
   if (!ready) return <LoadingBlock />;
   if (placing.current) return null;
   if (lines.length === 0) return <Navigate to="/cart" replace />;
-  if (Object.keys(validateDraft(draft, areas)).length > 0 || !selectedArea)
+  if (Object.keys(validateDraft(draft)).length > 0)
     return <Navigate to="/checkout" replace />;
 
   const initializePayment = async (order: Order) => {
@@ -61,7 +52,6 @@ export default function PaymentPage() {
     try {
       const order = await createOrder({
         draft,
-        areaName: selectedArea.name,
         items: lines.map((l) => ({
           productId: l.product.id,
           name: l.product.name,
@@ -144,7 +134,6 @@ export default function PaymentPage() {
             <p className="font-semibold">{draft.fullName}</p>
             <p className="text-ink-soft">{draft.phone}</p>
             <p className="mt-2">{draft.address}</p>
-            <p className="text-ink-soft">{selectedArea.name}</p>
             <p className="mt-2 text-sm text-ink-soft">
               Preferred date: {formatPlainDate(draft.preferredDate)}
             </p>

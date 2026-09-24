@@ -7,10 +7,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { CartLine, CheckoutDraft, DeliveryArea, Product } from "@/types";
+import type { CartLine, CheckoutDraft, Product } from "@/types";
 import { readJson, writeJson } from "@/lib/storage";
 import { listProducts } from "@/services/productService";
-import { listDeliveryAreas } from "@/services/deliveryService";
 import { ymdFromToday } from "@/lib/format";
 
 const CART_KEY = "aa:cart:v1";
@@ -20,7 +19,6 @@ export const emptyDraft: CheckoutDraft = {
   fullName: "",
   phone: "",
   email: "",
-  areaId: "",
   address: "",
   preferredDate: ymdFromToday(2),
   notes: "",
@@ -44,13 +42,8 @@ interface CartValue {
 
   draft: CheckoutDraft;
   updateDraft: (patch: Partial<CheckoutDraft>) => void;
-  areas: DeliveryArea[];
-  areasLoading: boolean;
-  areasError: string | null;
   productsReady: boolean;
-  selectedArea: DeliveryArea | null;
-  /** null until the customer picks a delivery area */
-  deliveryFee: number | null;
+  deliveryFee: number;
   total: number;
 }
 
@@ -74,33 +67,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }));
   const [products, setProducts] = useState<Product[]>([]);
   const [productsReady, setProductsReady] = useState(false);
-  const [areas, setAreas] = useState<DeliveryArea[]>([]);
-  const [areasLoading, setAreasLoading] = useState(true);
-  const [areasError, setAreasError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    setAreasLoading(true);
-    setAreasError(null);
-    Promise.allSettled([listProducts(), listDeliveryAreas()]).then(
-      ([productsResult, areasResult]) => {
+    listProducts()
+      .then((productsResult) => {
         if (cancelled) return;
-        if (productsResult.status === "fulfilled")
-          setProducts(productsResult.value);
+        setProducts(productsResult);
         setProductsReady(true);
-        if (areasResult.status === "fulfilled") {
-          setAreas(areasResult.value);
-        } else {
-          setAreas([]);
-          setAreasError(
-            "Delivery areas could not be loaded. Please refresh and try again.",
-          );
-        }
-        setAreasLoading(false);
         setReady(true);
-      },
-    );
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setProductsReady(true);
+          setReady(true);
+        }
+      });
     return () => {
       cancelled = true;
     };
@@ -178,15 +161,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const subtotal = lines.reduce((sum, l) => sum + l.lineTotal, 0);
   const itemCount = lines.reduce((sum, l) => sum + l.quantity, 0);
-  const selectedArea = areas.find((a) => a.id === draft.areaId) ?? null;
-  const allItemsFreeDelivery =
-    lines.length > 0 && lines.every((line) => line.product.freeDelivery);
-  const deliveryFee = selectedArea
-    ? allItemsFreeDelivery
-      ? 0
-      : selectedArea.fee
-    : null;
-  const total = subtotal + (deliveryFee ?? 0);
+  const deliveryFee = 0;
+  const total = subtotal + deliveryFee;
 
   const value: CartValue = {
     lines,
@@ -199,11 +175,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     clear,
     draft,
     updateDraft,
-    areas,
-    areasLoading,
-    areasError,
     productsReady,
-    selectedArea,
     deliveryFee,
     total,
   };

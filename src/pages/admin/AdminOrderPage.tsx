@@ -168,7 +168,6 @@ export default function AdminOrderPage() {
 
         <Card title="Delivery">
           <dl className="space-y-3.5">
-            <Row label="Area">{order.delivery.areaName}</Row>
             <Row label="Address">{order.delivery.address}</Row>
             <Row label="Preferred date">
               {formatPlainDate(order.delivery.preferredDate)}

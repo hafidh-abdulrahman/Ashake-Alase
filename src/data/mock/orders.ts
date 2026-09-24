@@ -16,8 +16,6 @@ export const mockOrders: Order[] = [
     orderNumber: "AA-DEMO-2K4M",
     customer: { fullName: "Adaeze Okonkwo", phone: "08012345678" },
     delivery: {
-      areaId: "zone-1",
-      areaName: "Zone 1: Nearby",
       address: "12 Sample Street, Sample Estate",
       preferredDate: daysFromNow(2),
       notes: "Please call when close to the gate.",
@@ -46,8 +44,6 @@ export const mockOrders: Order[] = [
     orderNumber: "AA-DEMO-7H2P",
     customer: { fullName: "Tunde Bakare", phone: "08098765432" },
     delivery: {
-      areaId: "zone-2",
-      areaName: "Zone 2: Mid-range",
       address: "4 Example Close, Demo Layout",
       preferredDate: daysFromNow(3),
       notes: "",
@@ -76,8 +72,6 @@ export const mockOrders: Order[] = [
     orderNumber: "AA-DEMO-9C6R",
     customer: { fullName: "Ngozi Eze", phone: "07033221100" },
     delivery: {
-      areaId: "zone-1",
-      areaName: "Zone 1: Nearby",
       address: "27 Placeholder Avenue",
       preferredDate: daysFromNow(1),
       notes: "Leave with the security.",
@@ -113,8 +107,6 @@ export const mockOrders: Order[] = [
     orderNumber: "AA-DEMO-3B8W",
     customer: { fullName: "Ibrahim Musa", phone: "08155501234" },
     delivery: {
-      areaId: "zone-3",
-      areaName: "Zone 3: Extended",
       address: "9 Test Road, Sample District",
       preferredDate: daysFromNow(1),
       notes: "",
@@ -144,8 +136,6 @@ export const mockOrders: Order[] = [
     orderNumber: "AA-DEMO-5D1T",
     customer: { fullName: "Folake Adeyemi", phone: "09011223344" },
     delivery: {
-      areaId: "zone-2",
-      areaName: "Zone 2: Mid-range",
       address: "15 Mock Crescent",
       preferredDate: daysFromNow(0),
       notes: "Office delivery, ask for reception.",
@@ -175,8 +165,6 @@ export const mockOrders: Order[] = [
     orderNumber: "AA-DEMO-8F3N",
     customer: { fullName: "Chidi Nwosu", phone: "08122334455" },
     delivery: {
-      areaId: "zone-1",
-      areaName: "Zone 1: Nearby",
       address: "3 Demo Lane",
       preferredDate: daysFromNow(-1),
       notes: "",

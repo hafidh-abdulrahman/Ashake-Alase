@@ -32,7 +32,6 @@ export interface CustomerOrderResponse {
   deliveryFee: number;
   total: number;
   delivery: {
-    areaName: string;
     address: string;
     preferredDate: string;
     notes: string;
@@ -71,14 +70,13 @@ const parseDelivery = (value: string) => {
   try {
     const parsed = JSON.parse(value) as Record<string, unknown>;
     return {
-      areaName: typeof parsed.areaName === "string" ? parsed.areaName : "",
       address: typeof parsed.address === "string" ? parsed.address : "",
       preferredDate:
         typeof parsed.preferredDate === "string" ? parsed.preferredDate : "",
       notes: typeof parsed.notes === "string" ? parsed.notes : "",
     };
   } catch {
-    return { areaName: "", address: value, preferredDate: "", notes: "" };
+    return { address: value, preferredDate: "", notes: "" };
   }
 };
 

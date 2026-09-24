@@ -92,8 +92,6 @@ export interface CustomerDetails {
 }
 
 export interface DeliveryDetails {
-  areaId: string;
-  areaName: string;
   address: string;
   /** yyyy-mm-dd */
   preferredDate: string;
@@ -119,7 +117,6 @@ export interface CheckoutDraft {
   fullName: string;
   phone: string;
   email: string;
-  areaId: string;
   address: string;
   preferredDate: string;
   notes: string;

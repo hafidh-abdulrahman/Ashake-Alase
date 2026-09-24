@@ -178,7 +178,6 @@ export default function TrackOrderPage() {
                   <div>
                     <dt className="text-sm text-ink-soft">Delivering to</dt>
                     <dd className="font-semibold">{order.delivery.address}</dd>
-                    <dd className="text-ink-soft">{order.delivery.areaName}</dd>
                   </div>
                   <div>
                     <dt className="text-sm text-ink-soft">Preferred date</dt>
