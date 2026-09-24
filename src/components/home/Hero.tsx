@@ -4,6 +4,7 @@ import { FoodImage } from "@/components/ui/FoodImage";
 import { heroContent } from "@/data/mock/content";
 import { useFeaturedProduct } from "@/hooks/useData";
 import { site } from "@/config/site";
+import specialCombo3 from "../../Special Combo 3.jpeg";
 
 export function Hero() {
   const { data: featured } = useFeaturedProduct();
@@ -71,8 +72,8 @@ export function Hero() {
           />
           <div className="relative overflow-hidden rounded-[3rem] bg-surface-alt shadow-2xl lg:rotate-2">
             <FoodImage
-              src="/images/hero%201.jfif"
-              alt="Ashake Alase food selection"
+              src={specialCombo3}
+              alt="Ashake Alase special combo meal"
               placeholder={heroContent.placeholder}
               priority
               className="aspect-[4/3] size-full lg:aspect-[5/4]"
