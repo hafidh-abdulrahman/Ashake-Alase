@@ -1,5 +1,4 @@
 import type { CheckoutDraft } from "@/types";
-import { ymdFromToday } from "./format";
 
 export type DraftErrors = Partial<Record<keyof CheckoutDraft, string>>;
 
@@ -21,8 +20,5 @@ export function validateDraft(d: CheckoutDraft): DraftErrors {
   if (d.address.trim().length < 8)
     errors.address =
       "Enter the full delivery address, including street and landmark.";
-  if (!d.preferredDate) errors.preferredDate = "Choose a delivery date.";
-  else if (d.preferredDate < ymdFromToday(1))
-    errors.preferredDate = "Choose a date from tomorrow onwards.";
   return errors;
 }

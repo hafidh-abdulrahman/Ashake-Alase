@@ -11,9 +11,10 @@ import {
 import { OrderTracker } from "@/components/order/OrderTracker";
 import { OrderTotals } from "@/components/order/OrderTotals";
 import { SummaryLines } from "@/components/order/SummaryLines";
-import { formatDate, formatPlainDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 import { confirmOrderDelivery } from "@/services/orderService";
 import { Seo } from "@/components/Seo";
+import { FIXED_DELIVERY_DATE_LABEL } from "@/config/order";
 
 export default function TrackOrderPage() {
   const [orderNumber, setOrderNumber] = useState("");
@@ -187,9 +188,9 @@ export default function TrackOrderPage() {
                     <dd className="font-semibold">{order.delivery.address}</dd>
                   </div>
                   <div>
-                    <dt className="text-sm text-ink-soft">Preferred date</dt>
+                    <dt className="text-sm text-ink-soft">Delivery date</dt>
                     <dd className="font-semibold">
-                      {formatPlainDate(order.delivery.preferredDate)}
+                      {FIXED_DELIVERY_DATE_LABEL}
                     </dd>
                   </div>
                   <div>

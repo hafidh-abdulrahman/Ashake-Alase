@@ -10,7 +10,7 @@ import {
 import type { CartLine, CheckoutDraft, Product } from "@/types";
 import { readJson, writeJson } from "@/lib/storage";
 import { listProducts } from "@/services/productService";
-import { ymdFromToday } from "@/lib/format";
+import { FIXED_DELIVERY_DATE } from "@/config/order";
 
 const CART_KEY = "aa:cart:v1";
 const DRAFT_KEY = "aa:checkout:v1";
@@ -20,7 +20,7 @@ export const emptyDraft: CheckoutDraft = {
   phone: "",
   email: "",
   address: "",
-  preferredDate: ymdFromToday(2),
+  preferredDate: FIXED_DELIVERY_DATE,
   notes: "",
 };
 
@@ -64,6 +64,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [draft, setDraft] = useState<CheckoutDraft>(() => ({
     ...emptyDraft,
     ...readJson<Partial<CheckoutDraft>>(DRAFT_KEY, {}),
+    preferredDate: FIXED_DELIVERY_DATE,
   }));
   const [products, setProducts] = useState<Product[]>([]);
   const [productsReady, setProductsReady] = useState(false);
@@ -155,7 +156,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateDraft = useCallback(
-    (patch: Partial<CheckoutDraft>) => setDraft((d) => ({ ...d, ...patch })),
+    (patch: Partial<CheckoutDraft>) =>
+      setDraft((d) => ({ ...d, ...patch, preferredDate: FIXED_DELIVERY_DATE })),
     [],
   );
 

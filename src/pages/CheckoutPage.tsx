@@ -7,9 +7,9 @@ import { LoadingBlock } from "@/components/ui/PageState";
 import { CartSummaryCard } from "@/components/order/CartSummaryCard";
 import { CheckoutProgress } from "@/components/order/CheckoutProgress";
 import { validateDraft } from "@/lib/validation";
-import { ymdFromToday } from "@/lib/format";
 import type { CheckoutDraft } from "@/types";
 import { Seo } from "@/components/Seo";
+import { FIXED_DELIVERY_DATE_LABEL } from "@/config/order";
 
 export default function CheckoutPage() {
   const { lines, ready, draft, updateDraft } = useCart();
@@ -112,14 +112,15 @@ export default function CheckoutPage() {
             hint="Street, house number and a nearby landmark."
           />
 
-          <TextField
-            label="Preferred delivery date"
-            type="date"
-            min={ymdFromToday(1)}
-            value={draft.preferredDate}
-            onChange={(e) => set("preferredDate", e.target.value)}
-            error={errors.preferredDate}
-          />
+          <div className="rounded-2xl border border-line bg-paper px-4 py-3">
+            <p className="font-semibold text-ink">
+              Delivery Date: {FIXED_DELIVERY_DATE_LABEL}
+            </p>
+            <p className="mt-1 text-sm text-ink-soft">
+              Orders can be placed in advance. All orders will be delivered on
+              October 1, 2026.
+            </p>
+          </div>
 
           <TextAreaField
             label="Additional notes"

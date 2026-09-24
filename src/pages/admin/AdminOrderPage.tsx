@@ -12,9 +12,10 @@ import { OrderTracker } from "@/components/order/OrderTracker";
 import { OrderTotals } from "@/components/order/OrderTotals";
 import { SummaryLines } from "@/components/order/SummaryLines";
 import { orderNextAction, orderStatusLabel } from "@/lib/orderMeta";
-import { formatDateTime, formatPlainDate } from "@/lib/format";
+import { formatDateTime } from "@/lib/format";
 import { updateOrderStatus } from "@/services/orderService";
 import type { Order, OrderStatus } from "@/types";
+import { FIXED_DELIVERY_DATE_LABEL } from "@/config/order";
 
 function Card({
   title,
@@ -169,9 +170,7 @@ export default function AdminOrderPage() {
         <Card title="Delivery">
           <dl className="space-y-3.5">
             <Row label="Address">{order.delivery.address}</Row>
-            <Row label="Preferred date">
-              {formatPlainDate(order.delivery.preferredDate)}
-            </Row>
+            <Row label="Delivery date">{FIXED_DELIVERY_DATE_LABEL}</Row>
             <Row label="Notes">
               {order.delivery.notes || (
                 <span className="text-ink-soft">None</span>

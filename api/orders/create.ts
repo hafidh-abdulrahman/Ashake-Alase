@@ -10,7 +10,6 @@ interface RequestBody {
     phone?: unknown;
     email?: unknown;
     address?: unknown;
-    preferredDate?: unknown;
     notes?: unknown;
   };
   items?: unknown;
@@ -39,20 +38,11 @@ interface ResponseLike {
 const jsonError = (res: ResponseLike, status: number, message: string) =>
   res.status(status).json({ error: message });
 
+const FIXED_DELIVERY_DATE = "2026-10-01";
+
 const isValidEmail = (value: string) => /^\S+@\S+\.\S+$/.test(value);
 const isValidPhone = (value: string) =>
   /^(?:\+?234|0)[789][01]\d{8}$/.test(value.replace(/[\s\-()]/g, ""));
-
-const isValidDate = (value: string) => {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const [year, month, day] = value.split("-").map(Number);
-  const parsed = new Date(Date.UTC(year, month - 1, day));
-  return (
-    parsed.getUTCFullYear() === year &&
-    parsed.getUTCMonth() === month - 1 &&
-    parsed.getUTCDate() === day
-  );
-};
 
 const encodeDelivery = (
   address: string,
@@ -118,8 +108,7 @@ export default async function handler(
   const email = typeof draft?.email === "string" ? draft.email.trim() : "";
   const address =
     typeof draft?.address === "string" ? draft.address.trim() : "";
-  const preferredDate =
-    typeof draft?.preferredDate === "string" ? draft.preferredDate.trim() : "";
+  const preferredDate = FIXED_DELIVERY_DATE;
   const notes = typeof draft?.notes === "string" ? draft.notes.trim() : "";
 
   if (fullName.length < 3) {
@@ -134,7 +123,7 @@ export default async function handler(
     jsonError(res, 400, "A valid customer email is required.");
     return;
   }
-  if (address.length < 8 || !isValidDate(preferredDate)) {
+  if (address.length < 8) {
     jsonError(res, 400, "Valid delivery details are required.");
     return;
   }

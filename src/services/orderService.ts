@@ -6,6 +6,7 @@ import type {
   PaymentStatus,
 } from "@/types";
 import { supabase } from "@/lib/supabase";
+import { FIXED_DELIVERY_DATE } from "@/config/order";
 
 interface OrderRow {
   id: string;
@@ -65,7 +66,7 @@ const toNumber = (value: number | string) => Number(value);
 const encodeDelivery = (draft: CheckoutDraft) =>
   JSON.stringify({
     address: draft.address.trim(),
-    preferredDate: draft.preferredDate,
+    preferredDate: FIXED_DELIVERY_DATE,
     notes: draft.notes.trim(),
   });
 

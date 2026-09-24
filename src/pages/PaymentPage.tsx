@@ -7,11 +7,12 @@ import { LoadingBlock } from "@/components/ui/PageState";
 import { CartSummaryCard } from "@/components/order/CartSummaryCard";
 import { CheckoutProgress } from "@/components/order/CheckoutProgress";
 import { validateDraft } from "@/lib/validation";
-import { formatNaira, formatPlainDate } from "@/lib/format";
+import { formatNaira } from "@/lib/format";
 import { createOrder } from "@/services/orderService";
 import { initializePaystackTransaction } from "@/services/paystackService";
 import type { Order } from "@/types";
 import { Seo } from "@/components/Seo";
+import { FIXED_DELIVERY_DATE_LABEL } from "@/config/order";
 
 export default function PaymentPage() {
   const { lines, ready, draft, deliveryFee, total, clear } = useCart();
@@ -162,7 +163,7 @@ export default function PaymentPage() {
             <p className="text-ink-soft">{draft.phone}</p>
             <p className="mt-2">{draft.address}</p>
             <p className="mt-2 text-sm text-ink-soft">
-              Preferred date: {formatPlainDate(draft.preferredDate)}
+              Delivery date: {FIXED_DELIVERY_DATE_LABEL}
             </p>
           </div>
         </div>

@@ -8,9 +8,9 @@ import { PaymentStatusBadge } from "@/components/ui/StatusBadge";
 import { OrderTracker } from "@/components/order/OrderTracker";
 import { OrderTotals } from "@/components/order/OrderTotals";
 import { SummaryLines } from "@/components/order/SummaryLines";
-import { formatPlainDate } from "@/lib/format";
 import { paymentStatusLabel } from "@/lib/orderMeta";
 import { Seo } from "@/components/Seo";
+import { FIXED_DELIVERY_DATE_LABEL } from "@/config/order";
 
 export default function ConfirmationPage() {
   const { orderNumber } = useParams();
@@ -162,14 +162,10 @@ export default function ConfirmationPage() {
                 <dt className="text-sm text-ink-soft">Address</dt>
                 <dd className="font-semibold">{order.delivery.address}</dd>
               </div>
-              {order.delivery.preferredDate && (
-                <div>
-                  <dt className="text-sm text-ink-soft">Preferred date</dt>
-                  <dd className="font-semibold">
-                    {formatPlainDate(order.delivery.preferredDate)}
-                  </dd>
-                </div>
-              )}
+              <div>
+                <dt className="text-sm text-ink-soft">Delivery date</dt>
+                <dd className="font-semibold">{FIXED_DELIVERY_DATE_LABEL}</dd>
+              </div>
               {order.delivery.notes && (
                 <div>
                   <dt className="text-sm text-ink-soft">Notes</dt>
