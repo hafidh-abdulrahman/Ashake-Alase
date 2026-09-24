@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Mail, MapPin, Phone, Send } from "lucide-react";
 import { site } from "@/config/site";
+import { Seo } from "@/components/Seo";
 
 function InstagramIcon({ className = "size-6" }: { className?: string }) {
   return (
@@ -80,6 +81,11 @@ export default function ContactPage() {
 
   return (
     <div className="container-page max-w-[80rem] pb-20 pt-10 sm:pb-24 lg:pt-16">
+      <Seo
+        title="Contact Ashake Alase | Food Orders and Enquiries"
+        description="Contact Ashake Alase in Lagos for food orders, catering enquiries, delivery questions and customer support."
+        path="/contact"
+      />
       <section className="mx-auto max-w-3xl text-center">
         <h1 className="text-4xl text-ink md:text-5xl">
           Get in <span className="text-primary">Touch</span>

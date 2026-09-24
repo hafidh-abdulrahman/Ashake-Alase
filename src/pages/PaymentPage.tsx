@@ -11,6 +11,7 @@ import { formatNaira, formatPlainDate } from "@/lib/format";
 import { createOrder } from "@/services/orderService";
 import { initializePaystackTransaction } from "@/services/paystackService";
 import type { Order } from "@/types";
+import { Seo } from "@/components/Seo";
 
 export default function PaymentPage() {
   const { lines, ready, draft, deliveryFee, total, clear } = useCart();
@@ -18,12 +19,37 @@ export default function PaymentPage() {
   const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const seo = (
+    <Seo
+      title="Secure Payment | Ashake Alase"
+      description="Complete payment for your Ashake Alase order securely."
+      path="/payment"
+      indexable={false}
+    />
+  );
 
-  if (!ready) return <LoadingBlock />;
-  if (placing.current) return null;
-  if (lines.length === 0) return <Navigate to="/cart" replace />;
+  if (!ready)
+    return (
+      <>
+        {seo}
+        <LoadingBlock />
+      </>
+    );
+  if (placing.current) return seo;
+  if (lines.length === 0)
+    return (
+      <>
+        {seo}
+        <Navigate to="/cart" replace />
+      </>
+    );
   if (Object.keys(validateDraft(draft)).length > 0)
-    return <Navigate to="/checkout" replace />;
+    return (
+      <>
+        {seo}
+        <Navigate to="/checkout" replace />
+      </>
+    );
 
   const initializePayment = async (order: Order) => {
     setBusy(true);
@@ -72,6 +98,7 @@ export default function PaymentPage() {
 
   return (
     <div className="container-page pb-20 pt-6 lg:pb-28 lg:pt-12">
+      {seo}
       <CheckoutProgress current={2} />
       <h1 className="text-[clamp(2.5rem,6vw,4.5rem)]">Payment</h1>
 

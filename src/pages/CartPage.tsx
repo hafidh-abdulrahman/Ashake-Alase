@@ -9,24 +9,43 @@ import { OrderTotals } from "@/components/order/OrderTotals";
 import { CheckoutProgress } from "@/components/order/CheckoutProgress";
 import { formatNaira } from "@/lib/format";
 import { maxQuantity } from "@/lib/availability";
+import { Seo } from "@/components/Seo";
 
 export default function CartPage() {
   const { lines, subtotal, ready, setQuantity, removeItem } = useCart();
   const navigate = useNavigate();
+  const seo = (
+    <Seo
+      title="Your Order | Ashake Alase"
+      description="Review your Ashake Alase order before checkout."
+      path="/cart"
+      indexable={false}
+    />
+  );
 
-  if (!ready) return <LoadingBlock label="Loading your order" />;
+  if (!ready)
+    return (
+      <>
+        {seo}
+        <LoadingBlock label="Loading your order" />
+      </>
+    );
   if (lines.length === 0)
     return (
-      <EmptyState
-        title="Your order is empty"
-        text="Choose something from the menu and it will show up here."
-        actionLabel="See the menu"
-        actionTo="/menu"
-      />
+      <>
+        {seo}
+        <EmptyState
+          title="Your order is empty"
+          text="Choose something from the menu and it will show up here."
+          actionLabel="See the menu"
+          actionTo="/menu"
+        />
+      </>
     );
 
   return (
     <div className="container-page pb-20 pt-6 lg:pb-28 lg:pt-12">
+      {seo}
       <CheckoutProgress current={0} />
       <h1 className="text-[clamp(2.5rem,6vw,4.5rem)]">Your Ashake order</h1>
 

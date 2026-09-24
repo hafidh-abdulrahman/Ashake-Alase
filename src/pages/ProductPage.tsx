@@ -9,6 +9,7 @@ import { QuantityStepper } from "@/components/ui/QuantityStepper";
 import { EmptyState, LoadingBlock } from "@/components/ui/PageState";
 import { formatNaira } from "@/lib/format";
 import { availabilityText, isSoldOut, maxQuantity } from "@/lib/availability";
+import { Seo } from "@/components/Seo";
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -38,6 +39,11 @@ export default function ProductPage() {
 
   return (
     <div className="pb-20 lg:pb-28">
+      <Seo
+        title={`${p.name} | Ashake Alase`}
+        description={`${p.description} Order ${p.name} from Ashake Alase online.`}
+        path={`/menu/${p.id}`}
+      />
       <div className="container-page pt-4 lg:pt-8">
         <Link
           to="/menu"

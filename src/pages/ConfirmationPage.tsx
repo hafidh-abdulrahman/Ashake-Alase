@@ -10,21 +10,39 @@ import { OrderTotals } from "@/components/order/OrderTotals";
 import { SummaryLines } from "@/components/order/SummaryLines";
 import { formatPlainDate } from "@/lib/format";
 import { paymentStatusLabel } from "@/lib/orderMeta";
+import { Seo } from "@/components/Seo";
 
 export default function ConfirmationPage() {
   const { orderNumber } = useParams();
   const { data: order, loading } = useOrderByNumber(orderNumber);
   const [copied, setCopied] = useState(false);
+  const seo = (
+    <Seo
+      title="Order Confirmation | Ashake Alase"
+      description="Your Ashake Alase order confirmation and delivery details."
+      path={`/order/${orderNumber ?? ""}`}
+      indexable={false}
+    />
+  );
 
-  if (loading) return <LoadingBlock label="Loading your order" />;
+  if (loading)
+    return (
+      <>
+        {seo}
+        <LoadingBlock label="Loading your order" />
+      </>
+    );
   if (!order)
     return (
-      <EmptyState
-        title="We can't find that order"
-        text="Check the order number and try again."
-        actionLabel="Back to home"
-        actionTo="/"
-      />
+      <>
+        {seo}
+        <EmptyState
+          title="We can't find that order"
+          text="Check the order number and try again."
+          actionLabel="Back to home"
+          actionTo="/"
+        />
+      </>
     );
 
   const copy = async () => {
@@ -39,6 +57,7 @@ export default function ConfirmationPage() {
 
   return (
     <div className="container-page pb-20 pt-8 lg:pb-28 lg:pt-14">
+      {seo}
       <div className="mx-auto max-w-3xl">
         <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
           <span className="grid size-16 shrink-0 animate-pop place-items-center rounded-full bg-ok text-white">

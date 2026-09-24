@@ -5,6 +5,7 @@ import { AdminGuard } from "@/components/admin/AdminGuard";
 import { ScrollManager } from "./ScrollManager";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { Seo } from "@/components/Seo";
 
 export function AdminLayout() {
   const navigate = useNavigate();
@@ -17,6 +18,12 @@ export function AdminLayout() {
   return (
     <AdminGuard>
       <div className="min-h-dvh bg-surface">
+        <Seo
+          title="Admin Dashboard | Ashake Alase"
+          description="Private Ashake Alase administration dashboard."
+          path="/admin"
+          indexable={false}
+        />
         <ScrollManager />
         <header className="border-b border-line bg-paper">
           <div className="container-page flex flex-col gap-3 py-3 sm:h-16 sm:flex-row sm:items-center sm:justify-between sm:py-0">

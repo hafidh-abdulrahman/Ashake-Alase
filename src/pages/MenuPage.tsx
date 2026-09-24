@@ -5,6 +5,7 @@ import { categoryLabels } from "@/data/mock/content";
 import { ProductCard } from "@/components/order/ProductCard";
 import { LoadingBlock } from "@/components/ui/PageState";
 import { cn } from "@/lib/cn";
+import { Seo } from "@/components/Seo";
 
 const categories = Object.keys(categoryLabels) as ProductCategory[];
 
@@ -26,6 +27,11 @@ export default function MenuPage() {
 
   return (
     <div className="pb-20 lg:pb-28">
+      <Seo
+        title="Menu and Food Offers | Ashake Alase"
+        description="Browse Ashake Alase meals, party trays, catering options and special food packages available to order online."
+        path="/menu"
+      />
       <section className="bg-ink text-surface">
         <div className="container-page grid gap-8 py-14 md:grid-cols-[1fr_auto] md:items-end md:py-20">
           <div>

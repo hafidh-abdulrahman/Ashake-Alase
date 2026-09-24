@@ -13,6 +13,7 @@ import { OrderTotals } from "@/components/order/OrderTotals";
 import { SummaryLines } from "@/components/order/SummaryLines";
 import { formatDate, formatPlainDate } from "@/lib/format";
 import { confirmOrderDelivery } from "@/services/orderService";
+import { Seo } from "@/components/Seo";
 
 export default function TrackOrderPage() {
   const [orderNumber, setOrderNumber] = useState("");
@@ -75,6 +76,12 @@ export default function TrackOrderPage() {
 
   return (
     <div className="container-page pb-20 pt-8 lg:pb-28 lg:pt-14">
+      <Seo
+        title="Track Your Order | Ashake Alase"
+        description="Check the latest status of your Ashake Alase order using your order number and phone number."
+        path="/track"
+        indexable={false}
+      />
       <div className="mx-auto max-w-3xl">
         <div className="text-center">
           <p className="eyebrow text-primary">Ashake delivery desk</p>

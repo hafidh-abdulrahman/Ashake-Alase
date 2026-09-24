@@ -9,14 +9,35 @@ import { CheckoutProgress } from "@/components/order/CheckoutProgress";
 import { validateDraft } from "@/lib/validation";
 import { ymdFromToday } from "@/lib/format";
 import type { CheckoutDraft } from "@/types";
+import { Seo } from "@/components/Seo";
 
 export default function CheckoutPage() {
   const { lines, ready, draft, updateDraft } = useCart();
   const navigate = useNavigate();
   const [submitted, setSubmitted] = useState(false);
+  const seo = (
+    <Seo
+      title="Checkout | Ashake Alase"
+      description="Enter your delivery details to place an Ashake Alase order."
+      path="/checkout"
+      indexable={false}
+    />
+  );
 
-  if (!ready) return <LoadingBlock />;
-  if (lines.length === 0) return <Navigate to="/cart" replace />;
+  if (!ready)
+    return (
+      <>
+        {seo}
+        <LoadingBlock />
+      </>
+    );
+  if (lines.length === 0)
+    return (
+      <>
+        {seo}
+        <Navigate to="/cart" replace />
+      </>
+    );
   // Errors only appear after the first attempt, then stay in sync as the customer fixes each field
   const errors = submitted ? validateDraft(draft) : {};
 
@@ -42,6 +63,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="container-page pb-20 pt-6 lg:pb-28 lg:pt-12">
+      {seo}
       <CheckoutProgress current={1} />
       <h1 className="text-[clamp(2.5rem,6vw,4.5rem)]">Delivery details</h1>
 
